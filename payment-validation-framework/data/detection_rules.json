@@ -1,0 +1,109 @@
+{
+  "payment_methods": {
+    "amex": {
+      "keywords": ["american express", "amex", "american-express"],
+      "img_patterns": ["amex", "american-express", "americanexpress"],
+      "alt_patterns": ["amex", "american express"],
+      "class_patterns": ["amex", "american-express"],
+      "network_patterns": ["amex", "americanexpress"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "visa": {
+      "keywords": ["visa"],
+      "img_patterns": ["visa"],
+      "alt_patterns": ["visa"],
+      "class_patterns": ["visa"],
+      "network_patterns": ["visa"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "mastercard": {
+      "keywords": ["mastercard", "master card", "mc"],
+      "img_patterns": ["mastercard", "master-card", "mc"],
+      "alt_patterns": ["mastercard", "master card"],
+      "class_patterns": ["mastercard", "mc"],
+      "network_patterns": ["mastercard"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "discover": {
+      "keywords": ["discover"],
+      "img_patterns": ["discover"],
+      "alt_patterns": ["discover"],
+      "class_patterns": ["discover"],
+      "network_patterns": ["discover"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "paypal": {
+      "keywords": ["paypal", "pay pal"],
+      "img_patterns": ["paypal", "pp-"],
+      "alt_patterns": ["paypal"],
+      "class_patterns": ["paypal"],
+      "network_patterns": ["paypal"],
+      "confidence_weights": { "network": 0.35, "img": 0.35, "text": 0.2, "alt": 0.1 }
+    },
+    "apple_pay": {
+      "keywords": ["apple pay", "applepay"],
+      "img_patterns": ["apple-pay", "applepay"],
+      "alt_patterns": ["apple pay"],
+      "class_patterns": ["apple-pay", "applepay"],
+      "network_patterns": ["apple-pay", "applepay"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "google_pay": {
+      "keywords": ["google pay", "googlepay", "gpay"],
+      "img_patterns": ["google-pay", "googlepay", "gpay"],
+      "alt_patterns": ["google pay", "gpay"],
+      "class_patterns": ["google-pay", "googlepay"],
+      "network_patterns": ["google-pay", "googlepay"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "jcb": {
+      "keywords": ["jcb"],
+      "img_patterns": ["jcb"],
+      "alt_patterns": ["jcb"],
+      "class_patterns": ["jcb"],
+      "network_patterns": ["jcb"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "unionpay": {
+      "keywords": ["union pay", "unionpay", "cup"],
+      "img_patterns": ["unionpay", "union-pay", "cup"],
+      "alt_patterns": ["unionpay", "union pay"],
+      "class_patterns": ["unionpay"],
+      "network_patterns": ["unionpay"],
+      "confidence_weights": { "network": 0.4, "img": 0.3, "text": 0.2, "alt": 0.1 }
+    },
+    "klarna": {
+      "keywords": ["klarna"],
+      "img_patterns": ["klarna"],
+      "alt_patterns": ["klarna"],
+      "class_patterns": ["klarna"],
+      "network_patterns": ["klarna"],
+      "confidence_weights": { "network": 0.35, "img": 0.35, "text": 0.2, "alt": 0.1 }
+    },
+    "afterpay": {
+      "keywords": ["afterpay", "after pay", "clearpay"],
+      "img_patterns": ["afterpay", "clearpay"],
+      "alt_patterns": ["afterpay", "clearpay"],
+      "class_patterns": ["afterpay", "clearpay"],
+      "network_patterns": ["afterpay", "clearpay"],
+      "confidence_weights": { "network": 0.35, "img": 0.35, "text": 0.2, "alt": 0.1 }
+    },
+    "shop_pay": {
+      "keywords": ["shop pay", "shoppay"],
+      "img_patterns": ["shop-pay", "shoppay"],
+      "alt_patterns": ["shop pay"],
+      "class_patterns": ["shop-pay", "shoppay"],
+      "network_patterns": ["shop-pay"],
+      "confidence_weights": { "network": 0.35, "img": 0.35, "text": 0.2, "alt": 0.1 }
+    }
+  },
+  "confidence_thresholds": {
+    "auto_accept": 0.80,
+    "review_required": 0.50,
+    "auto_reject": 0.30
+  },
+  "checkout_path_patterns": [
+    "/checkout", "/cart", "/basket", "/order", "/buy",
+    "/payment", "/pay", "/billing", "/purchase"
+  ]
+}

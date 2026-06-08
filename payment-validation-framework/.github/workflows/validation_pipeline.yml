@@ -1,0 +1,109 @@
+name: Payment Method Validation Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *'    # Nightly 2AM UTC
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'Region filter (e.g. US, GB, SG) — leave blank for all'
+        required: false
+        default: ''
+
+jobs:
+  unit-tests:
+    name: Unit Tests — Scorer & Utils
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/test_validation_pipeline.py -v --tb=short -m "not integration"
+
+  validation-pipeline:
+    name: Payment Validation — ${{ matrix.region }}
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    strategy:
+      matrix:
+        region: [US, GB, DE, JP, AU, SG]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Create reports dir
+        run: mkdir -p reports/screenshots
+
+      - name: Run validation — ${{ matrix.region }}
+        run: python run_validation.py --region ${{ matrix.region }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-${{ matrix.region }}
+          path: |
+            reports/validation_results_*.csv
+            reports/review_queue_*.csv
+            reports/screenshots/
+          retention-days: 30
+
+  full-run:
+    name: Full Pipeline — All Regions
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install all dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Run full pipeline — all merchants
+        run: python run_validation.py
+
+      - name: Upload full report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-validation-report
+          path: reports/
+          retention-days: 30

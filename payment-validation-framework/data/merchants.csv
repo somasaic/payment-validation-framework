@@ -1,0 +1,13 @@
+merchant_id,merchant_name,region,country_code,base_url,platform,segment,notes
+M001,DemoStore US,US,US,https://demo-store-us.myshopify.com,shopify,ecommerce,Primary US test merchant
+M002,TechRetail UK,GB,GB,https://demo-techretail.co.uk,woocommerce,ecommerce,UK region - no Amex expected
+M003,ElectroShop DE,DE,DE,https://demo-electroshop.de,shopify,ecommerce,Germany - PayPal dominant
+M004,NipponMart JP,JP,JP,https://demo-nipponmart.jp,custom,ecommerce,Japan - JCB expected
+M005,OzBuy AU,AU,AU,https://demo-ozbuy.com.au,bigcommerce,ecommerce,Australia - AfterPay expected
+M006,CanadaShop CA,CA,CA,https://demo-canadashop.ca,shopify,ecommerce,Canada - Amex + Visa + MC
+M007,SingaMall SG,SG,SG,https://demo-singamall.sg,woocommerce,ecommerce,Singapore - PayNow + GrabPay
+M008,HKBazaar HK,HK,HK,https://demo-hkbazaar.hk,shopify,ecommerce,HK - UnionPay + Amex
+M009,EuroStyle FR,FR,FR,https://demo-eurostyle.fr,shopify,ecommerce,France - Carte Bancaire
+M010,BrandHub US,US,US,https://demo-brandhub.us,magento,fashion,US fashion - Apple Pay + Amex
+M011,ServicePro UK,GB,GB,https://demo-servicepro.co.uk,custom,services,UK services site - PayPal heavy
+M012,LuxuryGoods SG,SG,SG,https://demo-luxurygoods.sg,shopify,luxury,SG luxury - Amex prominent
