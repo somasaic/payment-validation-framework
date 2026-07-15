@@ -3,7 +3,7 @@
 > **Automated detection of accepted payment methods (Amex, Visa, Mastercard, Discover, PayPal, wallets) across multi-region merchant websites — built to replace a multi-day manual QA process.**
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
-![Playwright](https://img.shields.io/badge/Playwright-1.44-green?logo=playwright)
+![Playwright](https://img.shields.io/badge/Playwright-1.55-green?logo=playwright)
 ![pytest](https://img.shields.io/badge/pytest-8.2-orange)
 ![CI](https://github.com/somasaic/payment-validation-framework/actions/workflows/validation_pipeline.yml/badge.svg)
 ![Merchants](https://img.shields.io/badge/Merchants-12-purple)
@@ -154,7 +154,7 @@ payment-validation-framework/
 
 | Tool | Role |
 |------|------|
-| **Playwright 1.44** | Browser automation — handles JS-heavy merchant sites |
+| **Playwright 1.55** | Browser automation — handles JS-heavy merchant sites |
 | **Python 3.11** | Pipeline orchestration + scoring logic |
 | **pytest** | Unit + integration test runner |
 | **CSV / JSON** | Merchant config input + structured output |
