@@ -5,7 +5,7 @@ Generates two outputs:
 
 1. validation_results_<timestamp>.csv
    — Full structured dataset (one row per merchant per method)
-   — This is the deliverable that would go to the client (Amex)
+   — This is the deliverable that goes to the client
 
 2. review_queue_<timestamp>.csv
    — Only rows with status=REVIEW (manual QA needed)
@@ -15,7 +15,6 @@ Generates two outputs:
 
 import csv
 import os
-import json
 import logging
 from datetime import datetime
 

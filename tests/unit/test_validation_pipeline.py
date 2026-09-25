@@ -13,6 +13,7 @@ TC_008  Report writer — review queue contains only REVIEW rows
 
 import os
 import csv
+
 import pytest
 
 from validators.confidence_scorer import ConfidenceScorer
@@ -111,7 +112,6 @@ def test_detection_rules_methods_present(detection_rules):
 
 def test_full_report_csv_written(tmp_path, detection_rules):
     """TC_007 — write_full_report outputs CSV with correct columns."""
-    import os
     os.makedirs("reports", exist_ok=True)
 
     fake_results = [{
@@ -147,7 +147,6 @@ def test_full_report_csv_written(tmp_path, detection_rules):
 
 def test_review_queue_contains_only_review_rows(detection_rules):
     """TC_008 — Review queue CSV has only REVIEW-status rows."""
-    import os
     os.makedirs("reports", exist_ok=True)
 
     fake_results = [{

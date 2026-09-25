@@ -18,7 +18,7 @@ from mock_merchant import chain
 from mock_merchant.server import rewrite_url
 from pages.components.site_footer import SiteFooter
 from pages.site_profile import profile_for_url
-from pages.store_locator_page import StoreDetailPage, StoreLocatorPage
+from pages.store_locator_page import StoreLocatorPage
 
 SITES = {
     "us": "https://us.crustandco.example",

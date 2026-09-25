@@ -37,7 +37,7 @@ TC_LINE = re.compile(r"^(TC_\d+)\s+(.+)$", re.MULTILINE)
 
 
 def _suite(item) -> str | None:
-    suite = Path(item.fspath).relative_to(TESTS_DIR).parts[0]
+    suite = item.path.relative_to(TESTS_DIR).parts[0]
     return suite if suite in SUITES else None
 
 
