@@ -1,0 +1,9 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 422", () => pm.response.to.have.status(422));
+pm.test("error envelope schema", () => pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get("errorSchema"))));
+pm.test("error code VALIDATION_ERROR", () => pm.expect(pm.response.json().error.code).to.eql("VALIDATION_ERROR"));
+
+pm.test("points at score", () =>
+  pm.expect(pm.response.json().error.details.map(d => d.field)).to.include("results.0.confidence_score"));

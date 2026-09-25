@@ -1,0 +1,1 @@
+{"merchant_id":"M004","currency":"JPY","symbol":"¥","decimals":0,"items":[{"sku":"SKU-1001","name":"Wireless Headphones","price":19221.0,"currency":"JPY"},{"sku":"SKU-1002","name":"Travel Backpack","price":11100.0,"currency":"JPY"},{"sku":"SKU-1003","name":"Smart Watch","price":32779.0,"currency":"JPY"}]}

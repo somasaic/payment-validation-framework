@@ -1,0 +1,8 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+const body = pm.response.json();
+pm.test("ranked results", () => { pm.expect(body.total).to.eql(2); pm.expect(body.items[0].store_id).to.eql("US-1001"); });
+pm.test("result shape", () => body.items.forEach(s =>
+  pm.expect(s).to.have.all.keys("store_id", "name", "address", "distance", "url")));

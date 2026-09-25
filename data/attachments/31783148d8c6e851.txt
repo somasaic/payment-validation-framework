@@ -1,0 +1,10 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+pm.test("merchant schema", () => pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get("merchantSchema"))));
+pm.test("payload", () => {
+  const m = pm.response.json();
+  pm.expect(m.merchant_name).to.eql("DemoStore US");
+  pm.expect(m.currency).to.eql("USD");
+});

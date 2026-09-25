@@ -1,0 +1,16 @@
+{
+  "merchant_id": "M002",
+  "results": [
+    {
+      "payment_method": "visa",
+      "detected": true,
+      "confidence_score": 0.6,
+      "status": "AUTO_ACCEPT",
+      "signals": [
+        "network",
+        "img",
+        "alt"
+      ]
+    }
+  ]
+}

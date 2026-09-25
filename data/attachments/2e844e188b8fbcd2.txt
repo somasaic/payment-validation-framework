@@ -1,0 +1,6 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+const body = pm.response.json();
+pm.test("last page", () => { pm.expect(body.items).to.have.lengthOf(2); pm.expect(body.offset).to.eql(10); });

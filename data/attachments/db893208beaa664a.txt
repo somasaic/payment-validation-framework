@@ -1,0 +1,23 @@
+{
+  "merchant_id": "M002",
+  "results": [
+    {
+      "payment_method": "visa",
+      "detected": true,
+      "confidence_score": 1.0,
+      "status": "AUTO_ACCEPT",
+      "signals": [
+        "network",
+        "img",
+        "alt"
+      ]
+    },
+    {
+      "payment_method": "amex",
+      "detected": false,
+      "confidence_score": 0.0,
+      "status": "AUTO_REJECT",
+      "signals": []
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+const body = pm.response.json();
+pm.test("list schema", () => pm.response.to.have.jsonSchema({
+  type: "object", required: ["items", "total", "limit", "offset"],
+  properties: {
+    items: { type: "array", items: JSON.parse(pm.collectionVariables.get("merchantSchema")) },
+    total: { type: "integer" }, limit: { type: "integer" }, offset: { type: "integer" }
+  }
+}));
+pm.test("12 merchants", () => pm.expect(body.total).to.eql(12));

@@ -1,0 +1,10 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 201", () => pm.response.to.have.status(201));
+const body = pm.response.json();
+pm.test("Location header", () =>
+  pm.expect(pm.response.headers.get("Location")).to.eql("/api/v1/validation-runs/" + body.run_id));
+pm.test("summary", () => pm.expect(body.summary).to.eql({ total: 2, AUTO_ACCEPT: 1, REVIEW: 0, AUTO_REJECT: 1 }));
+pm.test("no ground-truth mismatches", () => pm.expect(body.mismatches).to.be.empty);
+pm.collectionVariables.set("runId", body.run_id);

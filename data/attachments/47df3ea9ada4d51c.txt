@@ -1,0 +1,1 @@
+{"merchant_id":"M001","merchant_name":"DemoStore US","region":"US","country_code":"US","platform":"shopify","segment":"ecommerce","currency":"USD","storefront_url":"/store/M001/"}

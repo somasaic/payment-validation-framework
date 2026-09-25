@@ -1,0 +1,5 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+pm.test("body", () => pm.expect(pm.response.json()).to.eql({ status: "ok", version: "1.0.0" }));

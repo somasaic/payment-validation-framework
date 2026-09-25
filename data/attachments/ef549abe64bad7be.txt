@@ -1,0 +1,6 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+const ids = pm.response.json().items.map(m => m.merchant_id).sort();
+pm.test("only SG merchants", () => pm.expect(ids).to.eql(["M007", "M012"]));

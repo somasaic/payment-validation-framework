@@ -1,0 +1,13 @@
+pm.test("responds within 2s", () => pm.expect(pm.response.responseTime).to.be.below(2000));
+pm.test("has X-Request-ID", () => pm.response.to.have.header("X-Request-ID"));
+
+pm.test("status 200", () => pm.response.to.have.status(200));
+const codes = pm.response.json().methods.map(m => m.code);
+pm.test("methods schema", () => pm.response.to.have.jsonSchema({
+  type: "object", required: ["merchant_id", "currency", "methods"],
+  properties: { methods: { type: "array", items: {
+    type: "object", required: ["code", "display_name", "type", "icon_url"],
+    properties: { type: { enum: ["card", "wallet", "bnpl"] } } } } }
+}));
+pm.test("GB merchant: no Amex", () => pm.expect(codes).to.not.include("amex"));
+pm.test("accepted methods", () => pm.expect(codes).to.eql(["visa", "mastercard", "paypal", "klarna", "afterpay"]));

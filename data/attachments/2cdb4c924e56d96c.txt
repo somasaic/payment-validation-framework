@@ -1,0 +1,28 @@
+// Shared JSON Schemas (kept in sync with tests/api/schemas)
+pm.collectionVariables.set("merchantSchema", JSON.stringify({
+  type: "object", additionalProperties: false,
+  required: ["merchant_id", "merchant_name", "region", "country_code", "platform", "segment", "currency", "storefront_url"],
+  properties: {
+    merchant_id: { type: "string", pattern: "^M\\d{3}$" },
+    merchant_name: { type: "string", minLength: 1 },
+    region: { type: "string", pattern: "^[A-Z]{2}$" },
+    country_code: { type: "string", pattern: "^[A-Z]{2}$" },
+    platform: { enum: ["shopify", "woocommerce", "bigcommerce", "magento", "custom"] },
+    segment: { type: "string" },
+    currency: { type: "string", pattern: "^[A-Z]{3}$" },
+    storefront_url: { type: "string", pattern: "^/store/M\\d{3}/$" }
+  }
+}));
+pm.collectionVariables.set("errorSchema", JSON.stringify({
+  type: "object", additionalProperties: false, required: ["error"],
+  properties: {
+    error: {
+      type: "object", required: ["code", "message"],
+      properties: {
+        code: { type: "string", pattern: "^[A-Z_]+$" },
+        message: { type: "string", minLength: 1 },
+        details: { type: "array", items: { type: "object", required: ["field", "message"] } }
+      }
+    }
+  }
+}));
