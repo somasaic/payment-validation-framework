@@ -1,0 +1,25 @@
+[
+  {
+    "name": "Timeouts (page or element never became ready)",
+    "matchedStatuses": ["broken", "failed"],
+    "messageRegex": ".*(Timeout|TimeoutError|timed out).*"
+  },
+  {
+    "name": "Schema / contract violations",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*schema violations.*"
+  },
+  {
+    "name": "Detection accuracy (vs ground truth)",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*(accepted but not detected|detected but not accepted).*"
+  },
+  {
+    "name": "Product defects",
+    "matchedStatuses": ["failed"]
+  },
+  {
+    "name": "Test defects",
+    "matchedStatuses": ["broken"]
+  }
+]

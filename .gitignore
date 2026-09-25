@@ -17,3 +17,7 @@ playwright-report/
 .env
 .vscode/
 .idea/
+
+# Reports
+allure-results/
+allure-report/

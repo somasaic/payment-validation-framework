@@ -6,3 +6,4 @@ python-dotenv==1.0.1
 fastapi==0.141.1
 uvicorn==0.54.0
 jsonschema==4.26.0
+allure-pytest==2.16.1

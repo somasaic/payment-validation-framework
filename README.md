@@ -8,6 +8,7 @@
 ![Postman](https://img.shields.io/badge/Postman-Newman-ff6c37?logo=postman)
 ![CI](https://github.com/somasaic/payment-validation-framework/actions/workflows/validation_pipeline.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/tests-161_pytest_%2B_85_Postman-brightgreen)
+![Allure](https://img.shields.io/badge/report-Allure-orange)
 ![Regions](https://img.shields.io/badge/Regions-US_GB_DE_JP_AU_SG_HK_CA_FR_IN-red)
 
 ---
@@ -166,6 +167,46 @@ TARGET_BASE_URL=https://staging.example.com pytest -m api   # point suites at a 
 
 ---
 
+## 📑 Test Reports & CI/CD
+
+Every run in GitHub Actions produces three report formats and publishes them:
+
+| Report | Source | Where |
+|--------|--------|-------|
+| **Allure Report** | pytest (`allure-pytest`) + Postman (`newman-reporter-allure`), merged | GitHub Pages: **https://somasaic.github.io/payment-validation-framework/** |
+| **HTML reports** | `pytest-html` per suite (self-contained), Newman `htmlextra` for Postman | GitHub Pages `/html/` + `test-report` artifact |
+| **JUnit XML** | pytest + Newman | job artifacts |
+
+**Allure setup:**
+- **Behaviors**: epics per suite (Scoring & Data, Storefront & Store Locator UI, REST API, Validation Pipelines), features per test module, and titles taken from the TC IDs (`TC_110 · Checkout offers exactly the merchant's accepted methods [M002]`)
+- **Suites**: Postman folders and pytest API tests grouped together under *REST API*
+- **Categories**: timeouts, schema/contract violations, detection accuracy vs ground truth, product vs test defects (`allure/categories.json`)
+- **Trend history**: carried across runs from the `gh-pages` branch
+- **Environment + executor**: Python / Playwright versions, target, branch, commit, link back to the Actions run
+- **Failure evidence**: failed UI tests attach a full-page screenshot and the page URL, both in Allure and embedded in the pytest-html report; Playwright traces are uploaded as `playwright-traces`
+
+**Pipeline** (`.github/workflows/validation_pipeline.yml`):
+
+```
+unit-tests ─┬─ api-tests (pytest + Newman) ──┐
+            ├─ ui-tests (POM, traces) ────────┼─ test-report (Allure + HTML → GitHub Pages, job summary)
+            └─ integration-tests ─────────────┘
+                     └─ validation-pipeline (6-region matrix) + master-dataset  ──  artifacts (CSV + screenshots)
+nightly / manual: full-run (mock or live target)
+```
+
+The run summary page shows total / passed / failed / pass rate and links to the published reports. Reports are published from `main`; pull requests get them as the `test-report` artifact.
+
+**Generate locally:**
+
+```bash
+pytest --alluredir=allure-results --html=reports/html/report.html --self-contained-html
+python scripts/prepare_allure_results.py allure-results
+npx -p allure-commandline allure serve allure-results        # needs Java 8+
+```
+
+---
+
 ## 🧪 Test Target: Mock Merchant Service
 
 Real merchant sites change daily and must not be load-tested from CI, so every suite runs against `mock_merchant/`, a FastAPI service that stands in for them:
@@ -246,11 +287,14 @@ payment-validation-framework/
 │   └── integration/             # TC_301–TC_312
 │
 ├── postman/                     # Collection + environment (Newman in CI)
+├── allure/categories.json       # Allure defect categories
+├── scripts/
+│   └── prepare_allure_results.py  # Merge Postman results, categories, CI executor info
 │
 ├── run_master_validation.py     # Master dataset runner (--workers, --resume, --region, --mock)
 ├── run_validation.py            # Site-level runner (--region, --merchant, --mock)
 ├── .github/workflows/
-│   └── validation_pipeline.yml  # unit → api/ui/integration → regional matrix + master dataset → nightly
+│   └── validation_pipeline.yml  # tests → Allure + HTML reports on Pages → validation runs → nightly
 ├── pytest.ini
 └── requirements.txt
 ```
@@ -281,9 +325,10 @@ payment-validation-framework/
 | **Python 3.11** | Pipelines, scoring, address matching |
 | **pytest + pytest-playwright** | Unit, UI, API and integration suites; tracing & screenshots on failure |
 | **jsonschema** | Response contract validation (draft 2020-12) |
-| **Postman + Newman** | API collection run in CI |
+| **Postman + Newman** | API collection run in CI (htmlextra + Allure reporters) |
+| **Allure Report / pytest-html** | Merged test reporting with history, categories and failure evidence |
 | **FastAPI + Uvicorn** | Mock merchant service (test target) |
-| **GitHub Actions** | CI: unit → API / UI / integration → regional matrix + master dataset → nightly |
+| **GitHub Actions + Pages** | CI: unit → API / UI / integration → reports published to Pages → regional matrix + master dataset → nightly |
 
 ---
 

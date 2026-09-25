@@ -20,10 +20,17 @@ on:
         type: choice
         options: [mock, live]
 
+permissions:
+  contents: read
+
 env:
   PYTHON_VERSION: "3.11"
+  # every pytest job writes the same three report formats
+  REPORT_ARGS: --alluredir=allure-results --self-contained-html
 
 jobs:
+  # ───────────────────────────── Test stages ─────────────────────────────
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -35,12 +42,19 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Run unit tests
-        run: pytest -m unit --junitxml=reports/junit-unit.xml
+        run: >
+          pytest -m unit $REPORT_ARGS
+          --html=reports/html/unit-report.html --junitxml=reports/junit/unit.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: junit-unit
-          path: reports/junit-unit.xml
+          name: allure-results-unit
+          path: allure-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-unit
+          path: reports/
 
   api-tests:
     name: API Tests — pytest + Postman
@@ -52,10 +66,17 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-      - run: pip install -r requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: |
+          pip install -r requirements.txt
+          npm install --no-save --no-package-lock newman@6 newman-reporter-htmlextra@1 newman-reporter-allure@3
 
       - name: pytest API suite
-        run: pytest -m api --junitxml=reports/junit-api.xml
+        run: >
+          pytest -m api $REPORT_ARGS
+          --html=reports/html/api-report.html --junitxml=reports/junit/api.xml
 
       - name: Start mock merchant service
         run: |
@@ -64,14 +85,24 @@ jobs:
 
       - name: Postman collection (Newman)
         run: |
-          npx --yes newman@6 run postman/payment-validation-api.postman_collection.json \
+          npx newman run postman/payment-validation-api.postman_collection.json \
             -e postman/local.postman_environment.json \
-            --reporters cli,junit --reporter-junit-export reports/junit-postman.xml
+            --reporters cli,junit,htmlextra,allure \
+            --reporter-junit-export reports/junit/postman.xml \
+            --reporter-htmlextra-export reports/html/postman-report.html \
+            --reporter-htmlextra-title "Payment Validation API — Postman" \
+            --reporter-htmlextra-browserTitle "Postman Report" \
+            --reporter-allure-resultsDir allure-results
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: api-test-results
+          name: allure-results-api
+          path: allure-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-api
           path: reports/
 
   ui-tests:
@@ -89,17 +120,25 @@ jobs:
           playwright install chromium --with-deps
       - name: Run UI suite
         run: >
-          pytest -m ui --browser chromium
+          pytest -m ui --browser chromium $REPORT_ARGS
           --tracing retain-on-failure --screenshot only-on-failure --output test-results
-          --html reports/ui-report.html --self-contained-html
-          --junitxml=reports/junit-ui.xml
+          --html=reports/html/ui-report.html --junitxml=reports/junit/ui.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ui-test-results
-          path: |
-            reports/
-            test-results/
+          name: allure-results-ui
+          path: allure-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-ui
+          path: reports/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
           retention-days: 14
 
   integration-tests:
@@ -116,13 +155,121 @@ jobs:
           pip install -r requirements.txt
           playwright install chromium --with-deps
       - name: Run integration suite
-        run: pytest -m integration --junitxml=reports/junit-integration.xml
+        run: >
+          pytest -m integration $REPORT_ARGS
+          --html=reports/html/integration-report.html --junitxml=reports/junit/integration.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: integration-results
+          name: allure-results-integration
+          path: allure-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-integration
           path: reports/
           retention-days: 14
+
+  # ───────────────────────────── Reporting ─────────────────────────────
+
+  test-report:
+    name: Test Report — Allure + HTML
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests, ui-tests, integration-tests]
+    if: always()
+    permissions:
+      contents: write          # publish to gh-pages
+    concurrency:
+      group: test-report-pages
+      cancel-in-progress: false
+    env:
+      ALLURE_REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+      PUBLISH: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Download Allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          path: allure-results
+          merge-multiple: true
+
+      - name: Download HTML reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: downloaded-reports
+          merge-multiple: true
+
+      - name: Restore Allure history (trend charts)
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure report
+        run: |
+          if [ -d gh-pages/history ]; then cp -r gh-pages/history allure-results/history; fi
+          python scripts/prepare_allure_results.py allure-results
+          npx --yes -p allure-commandline@2 allure generate allure-results \
+            -o site --clean --name "Payment Validation Framework"
+          mkdir -p site/html
+          cp downloaded-reports/html/*.html site/html/ 2>/dev/null || true
+
+      - name: Build HTML report index
+        run: |
+          {
+            echo '<!doctype html><meta charset="utf-8"><title>HTML Test Reports</title>'
+            echo '<style>body{font:15px system-ui;margin:40px}li{margin:6px 0}</style>'
+            echo '<h1>HTML Test Reports</h1><p><a href="../">Allure report</a></p><ul>'
+            for f in site/html/*.html; do n=$(basename "$f"); echo "<li><a href=\"$n\">$n</a></li>"; done
+            echo '</ul>'
+          } > site/html/index.html
+
+      - name: Job summary
+        if: always()
+        run: |
+          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          s = json.load(open("site/widgets/summary.json"))["statistic"]
+          rate = 100 * s["passed"] / s["total"] if s["total"] else 0
+          print("## Test Report\n")
+          print("| Total | Passed | Failed | Broken | Skipped | Pass rate |")
+          print("|---:|---:|---:|---:|---:|---:|")
+          print(f"| {s['total']} | {s['passed']} | {s['failed']} | {s['broken']} | {s['skipped']} | {rate:.1f}% |\n")
+          if os.environ["PUBLISH"] == "true":
+              url = os.environ["ALLURE_REPORT_URL"]
+              print(f"**Allure:** {url}  \n**HTML reports:** {url}html/")
+          else:
+              print("Reports attached as the `test-report` artifact.")
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: site/
+          retention-days: 30
+
+      - name: Publish to GitHub Pages
+        if: env.PUBLISH == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: site
+          commit_message: "Test report for ${{ github.sha }}"
+
+  # ───────────────────────────── Validation runs ─────────────────────────────
 
   validation-pipeline:
     name: Site Validation — ${{ matrix.region }}
