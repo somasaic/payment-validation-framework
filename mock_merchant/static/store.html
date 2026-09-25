@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body data-page="store">
+  <header>
+    <strong data-testid="store-name">Store</strong>
+    <a href="cart" data-testid="cart-link">Cart (<span data-testid="cart-count">0</span>)</a>
+  </header>
+  <main>
+    <h1>Shop</h1>
+    <p role="status" class="muted" data-testid="toast"></p>
+    <section class="product-grid" data-testid="product-grid" aria-label="Products"></section>
+  </main>
+  <footer>
+    <span class="muted">We accept</span>
+    <ul class="footer-icons" data-testid="footer-payment-icons" aria-label="Accepted cards"></ul>
+  </footer>
+  <script src="/static/store.js"></script>
+</body>
+</html>

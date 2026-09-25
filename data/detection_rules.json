@@ -102,6 +102,12 @@
     "review_required": 0.50,
     "auto_reject": 0.30
   },
+  "page_readiness": {
+    "busy_selectors": ["[aria-busy='true']", "[class*='spinner']", "[class*='skeleton']"],
+    "payment_selectors": ["[data-payment-method]", "[class*='payment-icon']", "[class*='payment-method']", "img[alt*='visa' i]", "img[src*='visa' i]"],
+    "load_timeout_ms": 15000,
+    "settle_timeout_ms": 10000
+  },
   "checkout_path_patterns": [
     "/checkout", "/cart", "/basket", "/order", "/buy",
     "/payment", "/pay", "/billing", "/purchase"

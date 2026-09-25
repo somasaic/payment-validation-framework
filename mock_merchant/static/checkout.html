@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body data-page="checkout">
+  <header>
+    <a href="./" data-testid="store-name">Store</a>
+    <a href="cart" data-testid="cart-link">Cart (<span data-testid="cart-count">0</span>)</a>
+  </header>
+  <main class="checkout">
+    <div>
+      <h1>Checkout</h1>
+
+      <section class="panel" aria-labelledby="contact-heading">
+        <h2 id="contact-heading">Contact</h2>
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+        <label for="country">Country</label>
+        <select id="country">
+          <option>United States</option><option>United Kingdom</option><option>Germany</option>
+          <option>Japan</option><option>Australia</option><option>Canada</option>
+          <option>Singapore</option><option>Hong Kong</option><option>France</option>
+        </select>
+      </section>
+
+      <section class="panel checkout__methods" data-testid="payment-methods" aria-busy="true" aria-labelledby="payment-heading">
+        <h2 id="payment-heading">Payment method</h2>
+        <p role="status" data-testid="payment-loading">Loading payment options…</p>
+        <div role="alert" data-testid="payment-error" hidden>
+          Payment options could not be loaded.
+          <button type="button" data-testid="payment-retry">Retry</button>
+        </div>
+        <ul class="payment-list" data-testid="payment-method-list" aria-label="Payment options" hidden></ul>
+        <p class="muted" data-testid="selected-payment-method">Selected: none</p>
+      </section>
+
+      <button type="button" data-testid="continue-button" disabled>Continue to review</button>
+
+      <section class="panel" data-testid="order-review" hidden aria-label="Order review">
+        <h2>Order review</h2>
+        <p>Paying with <strong data-testid="review-method"></strong>.</p>
+        <p class="muted">Demo storefront: no order is placed and no payment details are collected.</p>
+      </section>
+    </div>
+
+    <aside class="panel" aria-labelledby="summary-heading">
+      <h2 id="summary-heading">Order summary</h2>
+      <ul data-testid="order-summary"></ul>
+      <p>Total: <strong data-testid="order-total"></strong></p>
+    </aside>
+  </main>
+  <footer>
+    <span class="muted">We accept</span>
+    <ul class="footer-icons" data-testid="footer-payment-icons" aria-label="Accepted cards"></ul>
+  </footer>
+  <script src="/static/store.js"></script>
+</body>
+</html>

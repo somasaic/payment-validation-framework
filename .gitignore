@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node (Postman/Newman)
+node_modules/
+
+# Generated outputs
+reports/
+test-results/
+playwright-report/
+
+# Local env / IDE
+.env
+.vscode/
+.idea/

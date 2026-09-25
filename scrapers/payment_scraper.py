@@ -22,11 +22,18 @@ import json
 import logging
 import os
 from datetime import datetime
-from playwright.sync_api import Page, Route
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 
 logger = logging.getLogger(__name__)
 
 ARTIFACTS_DIR = "reports/screenshots"
+
+DEFAULT_READINESS = {
+    "busy_selectors":    ["[aria-busy='true']"],
+    "payment_selectors": ["[data-payment-method]", "[class*='payment-icon']"],
+    "load_timeout_ms":   15000,
+    "settle_timeout_ms": 10000,
+}
 
 
 class PaymentMethodScraper:
@@ -35,6 +42,7 @@ class PaymentMethodScraper:
         self.page = page
         self.rules = detection_rules["payment_methods"]
         self.checkout_paths = detection_rules["checkout_path_patterns"]
+        self.readiness = {**DEFAULT_READINESS, **detection_rules.get("page_readiness", {})}
         self._network_urls: list[str] = []
 
     # ──────────────────────────────────────────────────────────────────────
@@ -65,7 +73,7 @@ class PaymentMethodScraper:
         # ── Step 1: Landing page ─────────────────────────────────────────
         try:
             self.page.goto(base_url, wait_until="domcontentloaded", timeout=30000)
-            self.page.wait_for_timeout(2000)   # let lazy-load settle
+            self._wait_for_payment_context(merchant_id, "landing")
             self._scan_current_page(evidence, label="landing")
             self._screenshot(merchant_id, "landing")
         except Exception as e:
@@ -76,7 +84,7 @@ class PaymentMethodScraper:
         if checkout_url:
             try:
                 self.page.goto(checkout_url, wait_until="domcontentloaded", timeout=30000)
-                self.page.wait_for_timeout(2000)
+                self._wait_for_payment_context(merchant_id, "checkout")
                 self._scan_current_page(evidence, label="checkout")
                 self._screenshot(merchant_id, "checkout")
             except Exception as e:
@@ -88,6 +96,38 @@ class PaymentMethodScraper:
         logger.info(f"[{merchant_id}] Scan complete. Methods with any signal: "
                     f"{[m for m, e in evidence.items() if any(e.values()) if m != 'screenshot']}")
         return evidence
+
+    # ──────────────────────────────────────────────────────────────────────
+    #  Page readiness (conditional waits — no fixed sleeps)
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _wait_for_payment_context(self, merchant_id: str, label: str):
+        """
+        Wait until the page is actually ready to scan instead of sleeping:
+          1. `load` event fired (icons/scripts fetched)
+          2. no visible busy indicator (aria-busy, spinners, skeletons) —
+             async payment widgets render methods only after this clears
+          3. at least one payment-context element is visible
+        Each step is soft: a timeout is logged and the scan continues with
+        whatever evidence is on the page, so one slow site never blocks a run.
+        """
+        steps = [
+            ("load", lambda: self.page.wait_for_load_state(
+                "load", timeout=self.readiness["load_timeout_ms"])),
+            ("busy indicators cleared", lambda: self.page.wait_for_function(
+                """sel => [...document.querySelectorAll(sel)]
+                            .every(el => !el.checkVisibility())""",
+                arg=", ".join(self.readiness["busy_selectors"]),
+                timeout=self.readiness["settle_timeout_ms"])),
+            ("payment context visible", lambda: self.page.locator(
+                ", ".join(self.readiness["payment_selectors"])).first.wait_for(
+                state="visible", timeout=self.readiness["settle_timeout_ms"])),
+        ]
+        for name, wait in steps:
+            try:
+                wait()
+            except PlaywrightTimeoutError:
+                logger.warning(f"[{merchant_id}] {label}: timed out waiting for {name}")
 
     # ──────────────────────────────────────────────────────────────────────
     #  Network interception

@@ -1,0 +1,45 @@
+{
+  "payment_method_catalog": {
+    "amex":       { "display_name": "American Express", "type": "card",   "icon": "amex.svg" },
+    "visa":       { "display_name": "Visa",             "type": "card",   "icon": "visa.svg" },
+    "mastercard": { "display_name": "Mastercard",       "type": "card",   "icon": "mastercard.svg" },
+    "discover":   { "display_name": "Discover",         "type": "card",   "icon": "discover.svg" },
+    "jcb":        { "display_name": "JCB",              "type": "card",   "icon": "jcb.svg" },
+    "unionpay":   { "display_name": "UnionPay",         "type": "card",   "icon": "unionpay.svg" },
+    "paypal":     { "display_name": "PayPal",           "type": "wallet", "icon": "paypal.svg" },
+    "apple_pay":  { "display_name": "Apple Pay",        "type": "wallet", "icon": "apple-pay.svg" },
+    "google_pay": { "display_name": "Google Pay",       "type": "wallet", "icon": "google-pay.svg" },
+    "shop_pay":   { "display_name": "Shop Pay",         "type": "wallet", "icon": "shop-pay.svg" },
+    "klarna":     { "display_name": "Klarna",           "type": "bnpl",   "icon": "klarna.svg" },
+    "afterpay":   { "display_name": "Afterpay",         "type": "bnpl",   "icon": "afterpay.svg" }
+  },
+  "products": [
+    { "sku": "SKU-1001", "name": "Wireless Headphones", "base_price_usd": 129.00 },
+    { "sku": "SKU-1002", "name": "Travel Backpack",     "base_price_usd": 74.50 },
+    { "sku": "SKU-1003", "name": "Smart Watch",         "base_price_usd": 219.99 }
+  ],
+  "currencies": {
+    "USD": { "symbol": "$",   "usd_rate": 1.0,   "decimals": 2 },
+    "GBP": { "symbol": "£",   "usd_rate": 0.79,  "decimals": 2 },
+    "EUR": { "symbol": "€",   "usd_rate": 0.92,  "decimals": 2 },
+    "JPY": { "symbol": "¥",   "usd_rate": 149.0, "decimals": 0 },
+    "AUD": { "symbol": "A$",  "usd_rate": 1.52,  "decimals": 2 },
+    "CAD": { "symbol": "C$",  "usd_rate": 1.36,  "decimals": 2 },
+    "SGD": { "symbol": "S$",  "usd_rate": 1.34,  "decimals": 2 },
+    "HKD": { "symbol": "HK$", "usd_rate": 7.81,  "decimals": 2 }
+  },
+  "storefronts": {
+    "M001": { "currency": "USD", "accepted_methods": ["amex", "visa", "mastercard", "discover", "paypal", "apple_pay", "google_pay", "shop_pay"] },
+    "M002": { "currency": "GBP", "accepted_methods": ["visa", "mastercard", "paypal", "klarna", "afterpay"] },
+    "M003": { "currency": "EUR", "accepted_methods": ["visa", "mastercard", "paypal"] },
+    "M004": { "currency": "JPY", "accepted_methods": ["visa", "mastercard", "jcb", "amex"] },
+    "M005": { "currency": "AUD", "accepted_methods": ["visa", "mastercard", "paypal", "afterpay", "apple_pay"] },
+    "M006": { "currency": "CAD", "accepted_methods": ["amex", "visa", "mastercard", "paypal"] },
+    "M007": { "currency": "SGD", "accepted_methods": ["visa", "mastercard", "amex"] },
+    "M008": { "currency": "HKD", "accepted_methods": ["visa", "mastercard", "amex", "unionpay"] },
+    "M009": { "currency": "EUR", "accepted_methods": ["visa", "mastercard", "paypal"] },
+    "M010": { "currency": "USD", "accepted_methods": ["amex", "visa", "mastercard", "apple_pay"] },
+    "M011": { "currency": "GBP", "accepted_methods": ["paypal", "visa", "mastercard"] },
+    "M012": { "currency": "SGD", "accepted_methods": ["amex", "visa", "mastercard", "apple_pay"] }
+  }
+}

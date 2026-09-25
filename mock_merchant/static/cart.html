@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cart</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body data-page="cart">
+  <header>
+    <a href="./" data-testid="store-name">Store</a>
+    <a href="cart" data-testid="cart-link">Cart (<span data-testid="cart-count">0</span>)</a>
+  </header>
+  <main>
+    <h1>Your cart</h1>
+    <p data-testid="cart-empty" hidden>Your cart is empty. <a href="./">Continue shopping</a></p>
+    <table aria-label="Cart items">
+      <tbody data-testid="cart-items"></tbody>
+    </table>
+    <p>Subtotal: <strong data-testid="cart-subtotal"></strong></p>
+    <button type="button" data-testid="checkout-button" disabled>Proceed to checkout</button>
+  </main>
+  <footer>
+    <span class="muted">We accept</span>
+    <ul class="footer-icons" data-testid="footer-payment-icons" aria-label="Accepted cards"></ul>
+  </footer>
+  <script src="/static/store.js"></script>
+</body>
+</html>
