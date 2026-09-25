@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StoreSearch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["region", "query", "total", "items"],
+  "properties": {
+    "region": { "type": "string", "pattern": "^[a-z]{2}$" },
+    "query": { "type": "string", "minLength": 2 },
+    "total": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["store_id", "name", "address", "distance", "url"],
+        "properties": {
+          "store_id": { "type": "string", "pattern": "^[A-Z]{2}-\\d{4}$" },
+          "name": { "type": "string", "minLength": 1 },
+          "address": { "type": "string", "minLength": 5 },
+          "distance": { "type": "string", "pattern": "^\\d+\\.\\d (mi|km)$" },
+          "url": { "type": "string", "pattern": "^/chain/[a-z]{2}/stores/[A-Z]{2}-\\d{4}$" }
+        }
+      }
+    }
+  }
+}
