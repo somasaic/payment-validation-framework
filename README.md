@@ -5,9 +5,10 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
 ![Playwright](https://img.shields.io/badge/Playwright-1.55-green?logo=playwright)
 ![pytest](https://img.shields.io/badge/pytest-8.2-orange)
-![Postman](https://img.shields.io/badge/Postman-Newman-ff6c37?logo=postman)
 ![CI](https://github.com/somasaic/payment-validation-framework/actions/workflows/validation_pipeline.yml/badge.svg)
-![Tests](https://img.shields.io/badge/tests-168_pytest_%2B_85_Postman-brightgreen)
+![Tests](https://img.shields.io/badge/pytest-227_cases_(95_functions)-brightgreen)
+![Postman](https://img.shields.io/badge/Postman-17_requests_%C2%B7_85_assertions-ff6c37?logo=postman)
+![License](https://img.shields.io/badge/license-MIT-blue)
 ![Allure](https://img.shields.io/badge/report-Allure-orange)
 ![Regions](https://img.shields.io/badge/Regions-US_GB_DE_JP_AU_SG_HK_CA_FR_IN-red)
 
@@ -73,6 +74,26 @@ AUTO_ACCEPT (≥0.80) → Yes    REVIEW (0.50–0.79) → Review    AUTO_REJECT 
 
 **Why layered?** Each source has false-positive risk alone. Combined scoring + confidence thresholds prevents incorrect data reaching the client.
 
+### How the weights are set — and how they're validated
+
+The weights in `data/detection_rules.json` are **heuristic priors**, ordered by how specific each signal is: a loaded icon file for the method (network 0.40) and the icon image itself (0.30) are strong; page text (0.20) is weak because it matches blog posts and news ("visa application"); alt text (0.10) and CSS classes (0.05) mostly corroborate. They are not claimed to be optimal. What makes them safe to use:
+
+| Safeguard | Where |
+|-----------|-------|
+| **Invariants, tested for every method:** no single signal can reach REVIEW on its own; all signals together always reach AUTO_ACCEPT | TC_025 |
+| **Review band:** 0.50–0.79 goes to a human instead of being guessed | scorer thresholds |
+| **Ground-truth accuracy:** every merchant and master-dataset record must be detected exactly (no misses, no false Yes) | TC_301, TC_310 |
+| **Calibration harness:** precision / recall / false-positive rate of automatic Yes, per-signal reliability, AUTO_ACCEPT threshold sweep, and **suggested weights** (Laplace-smoothed log-likelihood ratios) | `validators/calibration.py` |
+| **Quality gate in CI:** fails if precision of automatic Yes < 95% or false-positive rate > 5% | `scripts/calibrate_detection.py` |
+| **Feedback loop:** reviewer decisions from `review_queue_*.csv` become labels for the next calibration | `--review-queue` |
+
+```bash
+python scripts/calibrate_detection.py                                         # report + gate
+python scripts/calibrate_detection.py --review-queue "reports/review_queue_*.csv" --labels real_labels.csv
+```
+
+The labelled rows shipped in `data/calibration/` are **synthetic**. They cover the patterns the engine meets on real pages, including traps such as text-only mentions, leftover CSS classes, promo banners and sponsor logos. They exist to demonstrate and test the method; their numbers are not accuracy claims. Real calibration needs QA-reviewed labels from real scans (see `data/calibration/README.md`). Suggested weights are reported, never applied automatically.
+
 ### Reason codes
 
 Every record that can't be fully validated says why:
@@ -87,6 +108,22 @@ Every record that can't be fully validated says why:
 | `STORE_TEMPORARILY_CLOSED` | Unable to verify: the store page shows a temporarily closed notice. Method columns are left blank |
 | `NO_PAYMENT_INFO_DISPLAYED` | Page loaded fine but shows no payment acceptance, so every method is `No` |
 | `LOW_CONFIDENCE` | At least one method scored in the Review band |
+| `DISALLOWED_BY_ROBOTS` | The site's robots.txt disallows the page — it is never requested |
+| `NOT_ALLOWLISTED` | Live run: the domain is not in `data/live_allowlist.txt` — nothing is requested |
+
+---
+
+## 🛡️ Responsible Scanning
+
+| Safeguard | Behaviour |
+|-----------|-----------|
+| **Read-only** | Never fills forms, submits payments or enters personal data |
+| **robots.txt** | Checked before every page request (locator, store pages, info pages, checkout probes) per RFC 9309; disallowed pages are never requested (`DISALLOWED_BY_ROBOTS`). There is no switch to ignore it |
+| **Live allowlist** | Live runs only touch domains listed in `data/live_allowlist.txt`: the client's contracted merchant list, or sites whose owners have agreed. **It ships empty**, so a live CI run requests nothing until domains are added (`NOT_ALLOWLISTED`) |
+| **Per-domain throttle** | Minimum interval between records on the same domain across all workers (`--domain-interval`) |
+| **Honest client** | Default Playwright user agent; the browser is not disguised as a regular user |
+| **Bot protection respected** | 403/429/captcha pages are reported as `BLOCKED_BY_BOT_PROTECTION`, never bypassed |
+| **Mock by default** | CI runs against the local mock service; `target=live` is an explicit manual choice |
 
 ---
 
@@ -150,13 +187,16 @@ The mock service exposes a versioned API (`/api/v1`) for merchants, payment meth
 
 ## 🧪 Test Coverage
 
-| Suite | IDs | What it covers | Count |
-|-------|-----|----------------|-------|
-| Unit | TC_001–TC_017 | Scorer, CSV/rules loading, report writer, address normalisation & matching, master dataset I/O, checkpoint resume | 21 |
-| UI (POM) | TC_101–TC_127 | Currency, cart, footer brands, accepted methods at checkout for all 12 merchants, slow widget, API 503 + retry (route interception), checkout gating, store-locator search / results / store page / closed / no-payments / footer pages | 48 |
-| API | TC_201–TC_234 | Merchants, payment methods, products, validation runs, store-locator search, 404/405 error envelopes | 59 |
-| Integration | TC_301–TC_315 | Real scraper + scorer vs ground truth for every merchant and every master-dataset record, scoped scans, publish to API, CLI resume, stale site profiles, maintenance pages | 40 |
-| Postman | n/a | 17 requests, 85 assertions | 85 |
+| Suite | IDs | What it covers | Test functions | Test cases |
+|-------|-----|----------------|:---:|:---:|
+| Unit | TC_001–TC_036 | Confidence scorer (exact threshold boundaries, cap, defaults, shipped-weight invariants), calibration metrics & gate, robots.txt / allowlist policy, loaders, report writer, address matching, master dataset I/O, resume | 36 | 76 |
+| UI (POM) | TC_101–TC_127 | Currency, cart, footer brands, accepted methods at checkout for all 12 merchants, slow widget, API 503 + retry (route interception), checkout gating, store-locator search / results / store page / closed / no-payments / footer pages | 22 | 48 |
+| API | TC_201–TC_234 | Merchants, payment methods, products, validation runs, store-locator search, 404/405 error envelopes | 24 | 59 |
+| Integration | TC_301–TC_319 | Real scraper + scorer vs ground truth for every merchant and every master-dataset record, scoped scans, publish to API, CLI resume, stale site profiles, maintenance pages, robots.txt and allowlist enforcement | 13 | 44 |
+| **Total (pytest)** | | | **95** | **227** |
+| Postman | n/a | 17 requests | — | 85 assertions |
+
+**Functions vs cases:** many tests are parametrized — e.g. one function checks checkout for each of the 12 merchants, another sends 10 invalid payloads — and pytest counts every parameter set as its own test case. `pytest --collect-only -q` lists all 227.
 
 ```bash
 pytest -m unit            # fast, no browser
@@ -263,19 +303,24 @@ payment-validation-framework/
 │   ├── master_dataset.csv       # Master dataset: merchants + store locations, Yes/No per method
 │   ├── merchants.csv            # 12 merchants — US, GB, DE, JP, AU, SG, HK, CA, FR
 │   ├── detection_rules.json     # Keywords, patterns, weights, readiness waits, page discovery
-│   └── site_profiles.json       # Per-brand store-locator selectors
+│   ├── site_profiles.json       # Per-brand store-locator selectors
+│   ├── live_allowlist.txt       # Domains approved for live scanning (empty by default)
+│   └── calibration/             # Labelled evidence for weight calibration (synthetic examples + README)
 │
 ├── scrapers/
 │   ├── payment_scraper.py       # Navigate → readiness waits → layered scan (full page or scoped)
 │   └── record_validator.py      # One master record → locator flow or site-level scan → outcome + reason
 │
 ├── validators/
-│   └── confidence_scorer.py     # Weighted scoring → AUTO_ACCEPT / REVIEW / AUTO_REJECT
+│   ├── confidence_scorer.py     # Weighted scoring → AUTO_ACCEPT / REVIEW / AUTO_REJECT
+│   └── calibration.py           # Precision/recall on labelled evidence, signal reliability, suggested weights
 │
 ├── pages/                       # Page Object Model (see above)
 │
 ├── utils/
 │   ├── address_matcher.py       # Address normalisation + candidate matching
+│   ├── config.py                # Loads local .env settings
+│   ├── site_policy.py           # robots.txt (RFC 9309) + live allowlist
 │   ├── master_dataset.py        # Master CSV load/validate, fill, checkpoint writer, reason codes
 │   ├── csv_reader.py            # Load merchants.csv + detection_rules.json
 │   └── report_writer.py         # Site-level CSV + review queue + console summary
@@ -283,20 +328,23 @@ payment-validation-framework/
 ├── mock_merchant/               # FastAPI test target: storefronts, chain sites, REST API, ground truth
 │
 ├── tests/
-│   ├── unit/                    # TC_001–TC_017
+│   ├── unit/                    # TC_001–TC_036
 │   ├── ui/                      # TC_101–TC_127  (POM)
 │   ├── api/                     # TC_201–TC_234  (+ schemas/)
-│   └── integration/             # TC_301–TC_315
+│   └── integration/             # TC_301–TC_319
 │
 ├── postman/                     # Collection + environment (Newman in CI)
 ├── allure/categories.json       # Allure defect categories
 ├── scripts/
-│   └── prepare_allure_results.py  # Merge Postman results, categories, CI executor info
+│   ├── prepare_allure_results.py  # Merge Postman results, categories, CI executor info
+│   └── calibrate_detection.py     # Calibration report + quality gate
 │
 ├── run_master_validation.py     # Master dataset runner (--workers, --resume, --region, --mock)
 ├── run_validation.py            # Site-level runner (--region, --merchant, --mock)
 ├── .github/workflows/
 │   └── validation_pipeline.yml  # tests → Allure + HTML reports on Pages → validation runs → nightly
+├── .env.example                 # Documented settings (copy to .env for local overrides)
+├── LICENSE                      # MIT
 ├── pytest.ini
 └── requirements.txt
 ```
@@ -340,8 +388,10 @@ payment-validation-framework/
 # Clone & install
 git clone https://github.com/somasaic/payment-validation-framework.git
 cd payment-validation-framework
+python -m venv .venv                                # then activate: .venv\Scripts\Activate.ps1 (Windows) / source .venv/bin/activate
 pip install -r requirements.txt
 playwright install chromium
+cp .env.example .env                                # optional local settings
 
 # Master dataset (store locations + merchants) against the mock sites
 python run_master_validation.py --mock
@@ -352,11 +402,15 @@ python run_master_validation.py --resume reports/master_validated_<ts>.csv
 python run_validation.py --mock
 python run_validation.py --mock --region SG
 python run_validation.py --mock --merchant M001     # single merchant
-python run_validation.py --region US                # live mode: real URLs from merchants.csv
+python run_validation.py --region US                # live mode: only domains in data/live_allowlist.txt
+
+# Detection calibration report + quality gate
+python scripts/calibrate_detection.py
 
 # Tests
 pytest                                              # everything
-pytest -m "unit or api"                             # no browser needed for unit
+pytest -m "unit or api"                             # no browser needed
+pytest -m ui --headed --slowmo 500                  # watch the browser
 
 # Postman collection
 python -m mock_merchant --port 8000                 # in another terminal
@@ -400,6 +454,12 @@ All merchant URLs, brands ("Crust & Co" and the `demo-*` stores), addresses and 
 No real merchant data, credentials, live payment flows, or proprietary client data is included.
 This framework demonstrates the architecture and detection approach applied in real fintech payment data validation work.
 Designed to never fill or submit payment forms: read-only evidence collection only.
+
+---
+
+## 📄 License
+
+[MIT](LICENSE) © Cheviti Soma Sai Dinesh
 
 ---
 
