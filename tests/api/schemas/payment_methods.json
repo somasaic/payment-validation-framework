@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PaymentMethods",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "merchant_id",
+    "currency",
+    "methods"
+  ],
+  "properties": {
+    "merchant_id": {
+      "type": "string",
+      "pattern": "^M\\d{3}$"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "methods": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "display_name",
+          "type",
+          "icon_url"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z_]+$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "card",
+              "wallet",
+              "bnpl"
+            ]
+          },
+          "icon_url": {
+            "type": "string",
+            "pattern": "^/static/icons/[a-z-]+\\.svg$"
+          }
+        }
+      }
+    }
+  }
+}

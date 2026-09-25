@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ValidationRun",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "merchant_id",
+    "created_at",
+    "summary",
+    "mismatches",
+    "results"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "merchant_id": {
+      "type": "string",
+      "pattern": "^M\\d{3}$"
+    },
+    "created_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "AUTO_ACCEPT",
+        "REVIEW",
+        "AUTO_REJECT"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "AUTO_ACCEPT": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "REVIEW": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "AUTO_REJECT": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "mismatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "payment_method",
+          "reported",
+          "expected"
+        ],
+        "properties": {
+          "payment_method": {
+            "type": "string"
+          },
+          "reported": {
+            "type": "boolean"
+          },
+          "expected": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "payment_method",
+          "detected",
+          "confidence_score",
+          "status",
+          "signals"
+        ],
+        "properties": {
+          "payment_method": {
+            "type": "string"
+          },
+          "detected": {
+            "type": "boolean"
+          },
+          "confidence_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "status": {
+            "enum": [
+              "AUTO_ACCEPT",
+              "REVIEW",
+              "AUTO_REJECT"
+            ]
+          },
+          "signals": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "network",
+                "img",
+                "text",
+                "alt",
+                "css_class"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
