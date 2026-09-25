@@ -38,7 +38,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mock_merchant import catalog, chain
+from utils.config import load_env
 from utils.csv_reader import load_detection_rules
+
+load_env()
 
 API_VERSION = "1.0.0"
 STATIC_DIR  = os.path.join(os.path.dirname(__file__), "static")

@@ -22,6 +22,9 @@ from jsonschema import Draft202012Validator
 
 from mock_merchant import catalog
 from mock_merchant.server import MockMerchantServer
+from utils.config import load_env
+
+load_env()  # .env settings must be in place before API_KEY is read
 
 TESTS_DIR   = Path(__file__).parent
 SCHEMAS_DIR = TESTS_DIR / "api" / "schemas"
