@@ -51,9 +51,12 @@ class ConfidenceScorer:
         results = {}
         for method, ev in evidence.items():
             score, signals = self._compute_score(method, ev)
+            # Classify the same rounded value we report: 0.4 + 0.3 + 0.1 is
+            # 0.7999999… in floating point and must still count as 0.80.
+            score = round(score, 3)
             status = self._classify(score)
             results[method] = {
-                "score":    round(score, 3),
+                "score":    score,
                 "status":   status,
                 "detected": status == "AUTO_ACCEPT",
                 "signals":  signals,

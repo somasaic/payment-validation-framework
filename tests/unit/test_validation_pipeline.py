@@ -9,6 +9,7 @@ TC_005  CSV loader — merchants.csv loads correct count
 TC_006  Detection rules — all required methods present
 TC_007  Report writer — full CSV written with correct columns
 TC_008  Report writer — review queue contains only REVIEW rows
+TC_009  Confidence scorer — score exactly at a threshold is classified by its reported value
 """
 
 import os
@@ -171,3 +172,18 @@ def test_review_queue_contains_only_review_rows(detection_rules):
     assert len(rows) == 1             # Only visa is REVIEW
     assert rows[0]["payment_method"] == "visa"
     os.remove(filepath)
+
+
+# ── TC_009 ────────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("signals, expected_score, expected_status", [
+    (("network", "img", "alt"), 0.80, "AUTO_ACCEPT"),   # 0.4+0.3+0.1 = 0.7999… in floats
+    (("network", "text"),       0.60, "REVIEW"),
+    (("img", "text"),           0.50, "REVIEW"),
+])
+def test_threshold_boundaries(scorer, signals, expected_score, expected_status):
+    """TC_009 — status must agree with the reported (rounded) score at the thresholds."""
+    evidence = {s: s in signals for s in ("network", "img", "alt", "text", "css_class")}
+    result = scorer.score_merchant({"amex": evidence})["amex"]
+    assert result["score"] == expected_score
+    assert result["status"] == expected_status
