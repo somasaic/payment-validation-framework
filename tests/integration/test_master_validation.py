@@ -10,6 +10,7 @@ TC_312  CLI run is resumable: a second run completes only the pending rows
 import csv
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -19,8 +20,9 @@ from scrapers.record_validator import RecordValidator
 from utils.csv_reader import load_detection_rules
 from utils.master_dataset import load_master
 
+ROOT = Path(__file__).resolve().parents[2]
 RULES = load_detection_rules()
-MASTER, _, METHODS = load_master("data/master_dataset.csv", set(RULES["payment_methods"]))
+MASTER, _, METHODS = load_master(str(ROOT / "data" / "master_dataset.csv"), set(RULES["payment_methods"]))
 RECORDS = {r["record_id"]: r for r in MASTER}
 
 STORE_FOR_RECORD = {
@@ -90,11 +92,11 @@ def test_cli_resume(tmp_path):
     cmd = [sys.executable, "run_master_validation.py", "--mock", "--region", "AU",
            "--workers", "1", "--domain-interval", "0"]
 
-    subprocess.run(cmd + ["--limit", "1", "--output", str(out)], check=True, capture_output=True)
+    subprocess.run(cmd + ["--limit", "1", "--output", str(out)], check=True, capture_output=True, cwd=ROOT)
     first = list(csv.DictReader(out.open(encoding="utf-8")))
     assert [r["record_id"] for r in first] == ["R0011"]
 
-    subprocess.run(cmd + ["--resume", str(out)], check=True, capture_output=True)
+    subprocess.run(cmd + ["--resume", str(out)], check=True, capture_output=True, cwd=ROOT)
     final = list(csv.DictReader(out.open(encoding="utf-8")))
     assert [r["record_id"] for r in final] == ["R0011", "R0012"]
     assert final[0]["validated_at"] == first[0]["validated_at"]
