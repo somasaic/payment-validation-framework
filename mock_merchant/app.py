@@ -35,6 +35,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator, model_validator
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from mock_merchant import catalog, chain
 from utils.csv_reader import load_detection_rules
@@ -103,11 +104,15 @@ class ApiError(HTTPException):
         self.code = code
 
 
-def _error(status_code: int, code: str, message: str, details: list | None = None) -> JSONResponse:
+HTTP_ERROR_CODES = {404: "NOT_FOUND", 405: "METHOD_NOT_ALLOWED"}
+
+
+def _error(status_code: int, code: str, message: str, details: list | None = None,
+           headers: dict | None = None) -> JSONResponse:
     body = {"error": {"code": code, "message": message}}
     if details:
         body["error"]["details"] = details
-    return JSONResponse(status_code=status_code, content=body)
+    return JSONResponse(status_code=status_code, content=body, headers=headers)
 
 
 # ── App factory ───────────────────────────────────────────────────────────────
@@ -144,9 +149,11 @@ def create_app(
     async def bot_blocked_handler(_: Request, __: chain.BotBlocked):
         return chain.BOT_BLOCK_PAGE
 
-    @app.exception_handler(HTTPException)
-    async def http_error_handler(_: Request, exc: HTTPException):
-        return _error(exc.status_code, "HTTP_ERROR", str(exc.detail))
+    # Starlette's base class also covers router-level 404 / 405 (unknown path, wrong method)
+    @app.exception_handler(StarletteHTTPException)
+    async def http_error_handler(_: Request, exc: StarletteHTTPException):
+        code = HTTP_ERROR_CODES.get(exc.status_code, "HTTP_ERROR")
+        return _error(exc.status_code, code, str(exc.detail), headers=getattr(exc, "headers", None))
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(_: Request, exc: RequestValidationError):

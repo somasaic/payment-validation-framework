@@ -11,6 +11,8 @@ TC_207  GET /merchants/{id} unknown → 404 MERCHANT_NOT_FOUND
 TC_208  GET /merchants/{id}/payment-methods matches ground truth (all merchants)
 TC_209  GET /merchants/{id}/payment-methods?context=footer returns cards only
 TC_210  GET /merchants/{id}/products → prices converted to merchant currency
+TC_211  Unknown route → 404 NOT_FOUND in the standard error envelope
+TC_212  Unsupported method → 405 METHOD_NOT_ALLOWED with Allow header
 """
 
 import pytest
@@ -148,3 +150,20 @@ def test_products_in_merchant_currency(api, assert_schema, merchant_id, currency
     assert all(p["currency"] == currency for p in body["items"])
     headphones = next(p for p in body["items"] if p["name"] == "Wireless Headphones")
     assert headphones["price"] == pytest.approx(headphones_price)
+
+
+def test_unknown_route_404(api, assert_schema):
+    """TC_211"""
+    resp = api.get("/api/v1/does-not-exist")
+    assert resp.status == 404
+    assert_schema(resp.json(), "error")
+    assert resp.json()["error"]["code"] == "NOT_FOUND"
+
+
+def test_method_not_allowed_405(api, assert_schema):
+    """TC_212"""
+    resp = api.delete("/api/v1/merchants")
+    assert resp.status == 405
+    assert_schema(resp.json(), "error")
+    assert resp.json()["error"]["code"] == "METHOD_NOT_ALLOWED"
+    assert "GET" in resp.headers["allow"]
