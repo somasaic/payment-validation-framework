@@ -1,0 +1,6 @@
+17:32:13 [INFO] validators.confidence_scorer -   jcb: score=0.40 [AUTO_REJECT] signals=['network']
+17:32:13 [INFO] validators.confidence_scorer -   jcb: score=0.30 [AUTO_REJECT] signals=['img']
+17:32:13 [INFO] validators.confidence_scorer -   jcb: score=0.10 [AUTO_REJECT] signals=['alt']
+17:32:13 [INFO] validators.confidence_scorer -   jcb: score=0.20 [AUTO_REJECT] signals=['text']
+17:32:13 [INFO] validators.confidence_scorer -   jcb: score=0.05 [AUTO_REJECT] signals=['css_class']
+17:32:13 [INFO] validators.confidence_scorer -   jcb: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']

@@ -1,8 +1,0 @@
-14:39:52 [INFO] scrapers.payment_scraper - [M009] Scanning EuroStyle FR [FR]
-14:39:52 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M009_landing.png
-14:39:52 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:46491/store/M009/checkout
-14:39:53 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M009_checkout.png
-14:39:53 [INFO] scrapers.payment_scraper - [M009] Scan complete. Methods with any signal: ['visa', 'mastercard', 'paypal']
-14:39:53 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-14:39:53 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-14:39:53 [INFO] validators.confidence_scorer -   paypal: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
