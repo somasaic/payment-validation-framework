@@ -9,6 +9,7 @@ TC_014  Master dataset: method columns resolved; unknown method rejected
 TC_015  Master dataset: duplicate record_id / missing column rejected
 TC_016  fill_row maps statuses to Yes / No / Review and records evidence
 TC_017  Checkpoint writer supports resume and restores input order
+TC_018  Resume retries transient failures; the newer result replaces the old row
 """
 
 import csv
@@ -17,7 +18,7 @@ import pytest
 
 from scrapers.record_validator import ValidationOutcome
 from utils.address_matcher import best_match, normalize, score
-from utils.master_dataset import CheckpointWriter, Status, fill_row, load_master
+from utils.master_dataset import RETRY_ON_RESUME, CheckpointWriter, Status, fill_row, load_master
 
 KNOWN = {"amex", "visa", "mastercard", "paypal"}
 HEADER = "record_id,merchant_name,website_url,store_address,postal_code,amex_accepted,visa_accepted,validation_status,reason\n"
@@ -117,3 +118,18 @@ def test_checkpoint_resume_and_order(tmp_path):
     assert [r["record_id"] for r in rows] == ["R1", "R2"]
     with open(path, newline="", encoding="utf-8") as f:
         assert [r["record_id"] for r in csv.DictReader(f)] == ["R1", "R2"]
+
+
+def test_resume_retries_transient_failures(tmp_path):
+    """TC_018"""
+    path = str(tmp_path / "out.csv")
+    writer = CheckpointWriter(path, ["record_id", "reason", "value"])
+    writer.append({"record_id": "R1", "reason": "", "value": "done"})
+    writer.append({"record_id": "R2", "reason": "SITE_UNREACHABLE", "value": ""})
+    writer.append({"record_id": "R3", "reason": "STORE_NOT_FOUND", "value": ""})
+
+    assert writer.done_ids(retry_reasons=RETRY_ON_RESUME) == {"R1", "R3"}   # R2 is tried again
+
+    writer.append({"record_id": "R2", "reason": "", "value": "retried"})
+    rows = writer.finalize(["R1", "R2", "R3"])
+    assert [(r["record_id"], r["value"]) for r in rows] == [("R1", "done"), ("R2", "retried"), ("R3", "")]

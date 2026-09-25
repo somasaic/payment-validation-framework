@@ -37,6 +37,10 @@ class Reason:
     UNEXPECTED_ERROR          = "UNEXPECTED_ERROR"
 
 
+# Transient outcomes: validated again when a run is resumed
+RETRY_ON_RESUME = frozenset({Reason.SITE_UNREACHABLE, Reason.UNEXPECTED_ERROR})
+
+
 class Status:
     VALIDATED     = "VALIDATED"
     NEEDS_REVIEW  = "NEEDS_REVIEW"
@@ -103,16 +107,20 @@ class CheckpointWriter:
             with open(path, "w", newline="", encoding="utf-8") as f:
                 csv.DictWriter(f, fieldnames=fieldnames).writeheader()
 
-    def done_ids(self) -> set[str]:
+    def done_ids(self, retry_reasons: frozenset[str] = frozenset()) -> set[str]:
+        """Records already in the checkpoint, except those whose latest reason is
+        in retry_reasons (they are validated again; the newer row wins)."""
         with open(self.path, newline="", encoding="utf-8") as f:
-            return {r["record_id"] for r in csv.DictReader(f)}
+            latest = {r["record_id"]: r.get("reason", "") for r in csv.DictReader(f)}
+        return {rid for rid, reason in latest.items() if reason not in retry_reasons}
 
     def append(self, row: dict):
         with self._lock, open(self.path, "a", newline="", encoding="utf-8") as f:
             csv.DictWriter(f, fieldnames=self.fieldnames, extrasaction="ignore").writerow(row)
 
     def finalize(self, order: list[str]) -> list[dict]:
-        """Rewrite the checkpoint in master-dataset order; returns the rows."""
+        """Rewrite the checkpoint in master-dataset order, keeping the latest row
+        per record (a retried record's newer result replaces the old one)."""
         with open(self.path, newline="", encoding="utf-8") as f:
             rows = {r["record_id"]: r for r in csv.DictReader(f)}
         ordered = [rows[i] for i in order if i in rows]

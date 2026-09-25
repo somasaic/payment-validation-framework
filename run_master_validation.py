@@ -16,6 +16,7 @@ Usage:
   python run_master_validation.py                                   # data/master_dataset.csv
   python run_master_validation.py --workers 6 --region US
   python run_master_validation.py --resume reports/master_validated_20260925_101500.csv
+      (skips finished records; SITE_UNREACHABLE / UNEXPECTED_ERROR ones are tried again)
   python run_master_validation.py --mock                            # local mock sites (CI)
 """
 
@@ -35,7 +36,7 @@ from playwright.sync_api import sync_playwright
 from scrapers.record_validator import RecordValidator, ValidationOutcome
 from utils.csv_reader import load_detection_rules
 from utils.master_dataset import (
-    CheckpointWriter, Reason, Status, fill_row, load_master, output_fieldnames, summarize,
+    RETRY_ON_RESUME, CheckpointWriter, Reason, Status, fill_row, load_master, output_fieldnames, summarize,
 )
 
 logging.basicConfig(
@@ -145,7 +146,7 @@ def main():
     output = args.resume or args.output or \
         f"reports/master_validated_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     writer = CheckpointWriter(output, output_fieldnames(input_fields))
-    done = writer.done_ids() if args.resume else set()
+    done = writer.done_ids(retry_reasons=RETRY_ON_RESUME) if args.resume else set()
     pending = [r for r in rows if r["record_id"] not in done][: args.limit]
     logger.info(f"{len(rows)} records, {len(done)} already done, {len(pending)} to validate → {output}")
 
