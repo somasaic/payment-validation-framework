@@ -9,7 +9,22 @@ import time
 
 import uvicorn
 
+from mock_merchant import catalog, chain
 from mock_merchant.app import create_app
+
+
+def mock_routes() -> dict[str, str]:
+    """Real website origin → path on the mock server that stands in for it."""
+    routes = {m["base_url"].rstrip("/"): f"/store/{mid}" for mid, m in catalog.merchants().items()}
+    routes.update(chain.data()["domain_routes"])
+    return routes
+
+
+def rewrite_url(url: str, server_url: str) -> str:
+    """Map a real website URL onto the mock server; unknown origins pass through."""
+    origin = url.rstrip("/")
+    path = mock_routes().get(origin)
+    return f"{server_url}{path}" if path else url
 
 
 class MockMerchantServer:

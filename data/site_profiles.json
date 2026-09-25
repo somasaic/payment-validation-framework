@@ -1,0 +1,28 @@
+{
+  "_comment": "One profile per brand. Store locators differ per site, so selectors live here, not in code. Playwright selector syntax (css / role= / text=).",
+  "profiles": {
+    "crust_and_co": {
+      "domains": [
+        "us.crustandco.example",
+        "uk.crustandco.example",
+        "in.crustandco.example",
+        "au.crustandco.example",
+        "ca.crustandco.example",
+        "nz.crustandco.example"
+      ],
+      "locator_path": "/stores",
+      "search_input": "role=searchbox[name=\"Find a store near you\"]",
+      "search_submit": "role=button[name=\"Search\"]",
+      "results_container": "[data-testid='store-results']",
+      "results_status": "[data-testid='results-status']",
+      "result_item": "[data-testid='store-result']",
+      "result_name": "h3",
+      "result_address": "address",
+      "result_link": "role=link[name=\"View store details\"]",
+      "store_content": "[data-testid='store-detail']",
+      "store_address": "[data-testid='store-address']",
+      "store_closed": "[data-testid='store-status']",
+      "store_payments": "[data-testid='store-payments']"
+    }
+  }
+}

@@ -18,6 +18,8 @@ REST API (JSON, /api/v1):
   POST /api/v1/validation-runs                 (requires X-API-Key)
   GET  /api/v1/validation-runs/{run_id}
 
+Multi-location chain with store locators: see mock_merchant/chain.py.
+
 The checkout payment widget is served with configurable latency
 (MOCK_PAYMENT_LATENCY_MS) to reproduce slow third-party payment iframes.
 """
@@ -34,7 +36,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from mock_merchant import catalog
+from mock_merchant import catalog, chain
 from utils.csv_reader import load_detection_rules
 
 API_VERSION = "1.0.0"
@@ -110,15 +112,22 @@ def _error(status_code: int, code: str, message: str, details: list | None = Non
 
 # ── App factory ───────────────────────────────────────────────────────────────
 
-def create_app(payment_latency_ms: int | None = None, api_key: str | None = None) -> FastAPI:
+def create_app(
+    payment_latency_ms: int | None = None,
+    api_key: str | None = None,
+    search_latency_ms: int | None = None,
+) -> FastAPI:
     if payment_latency_ms is None:
         payment_latency_ms = int(os.getenv("MOCK_PAYMENT_LATENCY_MS", "800"))
+    if search_latency_ms is None:
+        search_latency_ms = int(os.getenv("MOCK_SEARCH_LATENCY_MS", "600"))
     api_key = api_key or os.getenv("MOCK_API_KEY", "local-dev-key")
 
     app = FastAPI(title="Mock Merchant Service", version=API_VERSION, docs_url="/docs")
     app.state.validation_runs = {}
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.include_router(chain.create_router(search_latency_ms))
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):
@@ -130,6 +139,10 @@ def create_app(payment_latency_ms: int | None = None, api_key: str | None = None
     @app.exception_handler(ApiError)
     async def api_error_handler(_: Request, exc: ApiError):
         return _error(exc.status_code, exc.code, exc.detail)
+
+    @app.exception_handler(chain.BotBlocked)
+    async def bot_blocked_handler(_: Request, __: chain.BotBlocked):
+        return chain.BOT_BLOCK_PAGE
 
     @app.exception_handler(HTTPException)
     async def http_error_handler(_: Request, exc: HTTPException):

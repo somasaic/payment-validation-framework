@@ -1,0 +1,59 @@
+{
+  "brand": "Crust & Co",
+  "domain_routes": {
+    "https://us.crustandco.example": "/chain/us",
+    "https://uk.crustandco.example": "/chain/uk",
+    "https://in.crustandco.example": "/chain/in",
+    "https://au.crustandco.example": "/chain/au",
+    "https://ca.crustandco.example": "/chain/ca"
+  },
+  "regions": {
+    "us": { "country": "United States",  "distance_unit": "mi", "footer_methods": ["visa", "mastercard", "amex"] },
+    "uk": { "country": "United Kingdom", "distance_unit": "mi", "footer_methods": ["visa", "mastercard"] },
+    "in": { "country": "India",          "distance_unit": "km", "footer_methods": ["visa", "mastercard", "rupay"] },
+    "au": { "country": "Australia",      "distance_unit": "km", "footer_methods": ["visa", "mastercard"] },
+    "ca": { "country": "Canada",         "distance_unit": "km", "footer_methods": ["visa", "mastercard"], "bot_protected": true }
+  },
+  "stores": [
+    { "store_id": "US-1001", "region": "us", "name": "Crust & Co Market Street",
+      "address": "1450 Market Street, San Francisco, CA 94103",
+      "accepted_methods": ["amex", "visa", "mastercard", "discover", "apple_pay", "google_pay"] },
+    { "store_id": "US-1002", "region": "us", "name": "Crust & Co Embarcadero",
+      "address": "2 Embarcadero Center, San Francisco, CA 94111",
+      "accepted_methods": ["visa", "mastercard"] },
+    { "store_id": "US-1003", "region": "us", "name": "Crust & Co Herald Square",
+      "address": "225 W 34th Street, New York, NY 10001",
+      "accepted_methods": ["visa", "mastercard", "apple_pay"] },
+    { "store_id": "US-1004", "region": "us", "name": "Crust & Co Congress Ave",
+      "address": "800 Congress Avenue, Austin, TX 78701",
+      "accepted_methods": [], "display_payments": false },
+    { "store_id": "US-1005", "region": "us", "name": "Crust & Co Pine Street",
+      "address": "1200 Pine Street, Seattle, WA 98101",
+      "accepted_methods": ["visa", "mastercard", "amex"], "temporarily_closed": true },
+
+    { "store_id": "UK-2001", "region": "uk", "name": "Crust & Co Oxford Street",
+      "address": "10 Oxford Street, London W1D 1BS",
+      "accepted_methods": ["visa", "mastercard", "amex", "apple_pay"] },
+    { "store_id": "UK-2002", "region": "uk", "name": "Crust & Co Deansgate",
+      "address": "45 Deansgate, Manchester M3 2AY",
+      "accepted_methods": ["visa", "mastercard", "google_pay"] },
+
+    { "store_id": "IN-3001", "region": "in", "name": "Crust & Co Connaught Place",
+      "address": "A-12 Connaught Place, New Delhi, Delhi 110001",
+      "accepted_methods": ["visa", "mastercard", "rupay", "upi", "paytm"] },
+    { "store_id": "IN-3002", "region": "in", "name": "Crust & Co MG Road",
+      "address": "44 MG Road, Bengaluru, Karnataka 560001",
+      "accepted_methods": ["visa", "mastercard", "rupay", "upi", "amex"] },
+
+    { "store_id": "AU-4001", "region": "au", "name": "Crust & Co George Street",
+      "address": "300 George Street, Sydney NSW 2000",
+      "accepted_methods": ["visa", "mastercard", "amex", "apple_pay"] },
+    { "store_id": "AU-4002", "region": "au", "name": "Crust & Co Bourke Street",
+      "address": "200 Bourke Street, Melbourne VIC 3000",
+      "accepted_methods": ["visa", "mastercard"] },
+
+    { "store_id": "CA-5001", "region": "ca", "name": "Crust & Co Yonge Street",
+      "address": "220 Yonge Street, Toronto, ON M5B 2H1",
+      "accepted_methods": ["visa", "mastercard", "amex"] }
+  ]
+}

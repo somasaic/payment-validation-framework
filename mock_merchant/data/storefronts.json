@@ -11,7 +11,10 @@
     "google_pay": { "display_name": "Google Pay",       "type": "wallet", "icon": "google-pay.svg" },
     "shop_pay":   { "display_name": "Shop Pay",         "type": "wallet", "icon": "shop-pay.svg" },
     "klarna":     { "display_name": "Klarna",           "type": "bnpl",   "icon": "klarna.svg" },
-    "afterpay":   { "display_name": "Afterpay",         "type": "bnpl",   "icon": "afterpay.svg" }
+    "afterpay":   { "display_name": "Afterpay",         "type": "bnpl",   "icon": "afterpay.svg" },
+    "rupay":      { "display_name": "RuPay",            "type": "card",   "icon": "rupay.svg" },
+    "upi":        { "display_name": "UPI",              "type": "wallet", "icon": "upi.svg" },
+    "paytm":      { "display_name": "Paytm",            "type": "wallet", "icon": "paytm.svg" }
   },
   "products": [
     { "sku": "SKU-1001", "name": "Wireless Headphones", "base_price_usd": 129.00 },
@@ -26,7 +29,8 @@
     "AUD": { "symbol": "A$",  "usd_rate": 1.52,  "decimals": 2 },
     "CAD": { "symbol": "C$",  "usd_rate": 1.36,  "decimals": 2 },
     "SGD": { "symbol": "S$",  "usd_rate": 1.34,  "decimals": 2 },
-    "HKD": { "symbol": "HK$", "usd_rate": 7.81,  "decimals": 2 }
+    "HKD": { "symbol": "HK$", "usd_rate": 7.81,  "decimals": 2 },
+    "INR": { "symbol": "₹",   "usd_rate": 83.2,  "decimals": 2 }
   },
   "storefronts": {
     "M001": { "currency": "USD", "accepted_methods": ["amex", "visa", "mastercard", "discover", "paypal", "apple_pay", "google_pay", "shop_pay"] },
