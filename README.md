@@ -7,7 +7,7 @@
 ![pytest](https://img.shields.io/badge/pytest-8.2-orange)
 ![Postman](https://img.shields.io/badge/Postman-Newman-ff6c37?logo=postman)
 ![CI](https://github.com/somasaic/payment-validation-framework/actions/workflows/validation_pipeline.yml/badge.svg)
-![Tests](https://img.shields.io/badge/tests-161_pytest_%2B_85_Postman-brightgreen)
+![Tests](https://img.shields.io/badge/tests-168_pytest_%2B_85_Postman-brightgreen)
 ![Allure](https://img.shields.io/badge/report-Allure-orange)
 ![Regions](https://img.shields.io/badge/Regions-US_GB_DE_JP_AU_SG_HK_CA_FR_IN-red)
 
@@ -82,6 +82,7 @@ Every record that can't be fully validated says why:
 | `SITE_UNREACHABLE` | DNS / connection / timeout / HTTP error (retried once) |
 | `BLOCKED_BY_BOT_PROTECTION` | 403/429 or a captcha / "verify you are human" interstitial |
 | `LOCATOR_NOT_SUPPORTED` | Record has an address but the brand has no site profile, so it gets a site-level result, flagged for review |
+| `LOCATOR_PAGE_CHANGED` | The brand's locator moved (404) or its selectors no longer match; the site profile needs updating (not retried) |
 | `STORE_NOT_FOUND` | Locator returned no candidate matching the address + postcode |
 | `STORE_TEMPORARILY_CLOSED` | Unable to verify: the store page shows a temporarily closed notice. Method columns are left blank |
 | `NO_PAYMENT_INFO_DISPLAYED` | Page loaded fine but shows no payment acceptance, so every method is `No` |
@@ -153,8 +154,8 @@ The mock service exposes a versioned API (`/api/v1`) for merchants, payment meth
 |-------|-----|----------------|-------|
 | Unit | TC_001–TC_017 | Scorer, CSV/rules loading, report writer, address normalisation & matching, master dataset I/O, checkpoint resume | 21 |
 | UI (POM) | TC_101–TC_127 | Currency, cart, footer brands, accepted methods at checkout for all 12 merchants, slow widget, API 503 + retry (route interception), checkout gating, store-locator search / results / store page / closed / no-payments / footer pages | 48 |
-| API | TC_201–TC_234 | Merchants, payment methods, products, validation runs, store-locator search | 57 |
-| Integration | TC_301–TC_312 | Real scraper + scorer vs ground truth for every merchant and every master-dataset record, scoped scans, publish to API, CLI resume | 35 |
+| API | TC_201–TC_234 | Merchants, payment methods, products, validation runs, store-locator search, 404/405 error envelopes | 59 |
+| Integration | TC_301–TC_315 | Real scraper + scorer vs ground truth for every merchant and every master-dataset record, scoped scans, publish to API, CLI resume, stale site profiles, maintenance pages | 40 |
 | Postman | n/a | 17 requests, 85 assertions | 85 |
 
 ```bash
@@ -249,6 +250,7 @@ Also written: `evidence_pages` (which page each method was seen on), `evidence_s
 | Crash safety | Rows appended to the output as they finish; `--resume <file>` skips completed rows |
 | Transient failures | Unreachable / unexpected errors retried (`--retries`) |
 | One bad site | Every exception becomes a row with a reason code; the batch never stops |
+| Browser crash | Worker detects the disconnected browser and relaunches it before the next record |
 
 ---
 
@@ -284,7 +286,7 @@ payment-validation-framework/
 │   ├── unit/                    # TC_001–TC_017
 │   ├── ui/                      # TC_101–TC_127  (POM)
 │   ├── api/                     # TC_201–TC_234  (+ schemas/)
-│   └── integration/             # TC_301–TC_312
+│   └── integration/             # TC_301–TC_315
 │
 ├── postman/                     # Collection + environment (Newman in CI)
 ├── allure/categories.json       # Allure defect categories
@@ -349,7 +351,8 @@ python run_master_validation.py --resume reports/master_validated_<ts>.csv
 # Site-level pipeline
 python run_validation.py --mock
 python run_validation.py --mock --region SG
-python run_validation.py --merchant M001            # live URL from merchants.csv
+python run_validation.py --mock --merchant M001     # single merchant
+python run_validation.py --region US                # live mode: real URLs from merchants.csv
 
 # Tests
 pytest                                              # everything

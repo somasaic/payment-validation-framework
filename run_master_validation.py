@@ -23,7 +23,6 @@ import argparse
 import contextlib
 import json
 import logging
-import os
 import queue
 import sys
 import threading
@@ -70,7 +69,8 @@ class DomainThrottle:
 def worker(jobs: queue.Queue, rules: dict, methods: list[str], writer: CheckpointWriter,
            throttle: DomainThrottle, retries: int, url_for, progress: dict):
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
+        launch = lambda: p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])  # noqa: E731
+        browser = launch()
         try:
             while True:
                 try:
@@ -80,16 +80,22 @@ def worker(jobs: queue.Queue, rules: dict, methods: list[str], writer: Checkpoin
                 target = url_for(record["website_url"])
                 outcome = None
                 for attempt in range(retries + 1):
+                    if not browser.is_connected():  # a crashed browser must not fail every later record
+                        logger.warning("Browser disconnected — relaunching")
+                        browser = launch()
                     throttle.wait(target)
-                    context = browser.new_context(viewport={"width": 1280, "height": 800}, locale="en-US")
+                    context = None
                     try:
+                        context = browser.new_context(viewport={"width": 1280, "height": 800}, locale="en-US")
                         outcome = RecordValidator(context.new_page(), rules).validate(record, target)
                     except Exception as e:  # never lose a row to one bad site
                         logger.exception(f"[{record['record_id']}] validation crashed")
                         outcome = ValidationOutcome(Status.NOT_VALIDATED, Reason.UNEXPECTED_ERROR, str(e)[:200])
                     finally:
-                        context.close()
-                    if not outcome.retryable:
+                        if context:
+                            with contextlib.suppress(Exception):
+                                context.close()
+                    if not outcome.retryable or attempt == retries:
                         break
                     logger.info(f"[{record['record_id']}] {outcome.reason} — retry {attempt + 1}/{retries}")
 
@@ -99,7 +105,8 @@ def worker(jobs: queue.Queue, rules: dict, methods: list[str], writer: Checkpoin
                     logger.info(f"[{record['record_id']}] {outcome.status} {outcome.reason} "
                                 f"({progress['done']}/{progress['total']})")
         finally:
-            browser.close()
+            with contextlib.suppress(Exception):
+                browser.close()
 
 
 def main():

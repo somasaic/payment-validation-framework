@@ -82,17 +82,44 @@ class RecordValidator:
         self.scraper.reset()
         locator = StoreLocatorPage(self.page, profile, site_url)
 
+        timeout = self.scraper.readiness["settle_timeout_ms"]
         response = self.page.goto(site_url.rstrip("/") + profile.locator_path, wait_until="domcontentloaded")
-        if self.scraper.is_bot_wall(response.status if response else None):
+        status = response.status if response else None
+        if self.scraper.is_bot_wall(status):
             return ValidationOutcome(
                 Status.NOT_VALIDATED, Reason.BLOCKED_BY_BOT_PROTECTION,
-                f"HTTP {response.status if response else '?'} on store locator",
+                f"HTTP {status or '?'} on store locator",
                 screenshot=self.scraper.screenshot(f"{rid}_blocked"),
             )
-        locator.search_input.wait_for()
+        if status == 404:
+            return ValidationOutcome(Status.NOT_VALIDATED, Reason.LOCATOR_PAGE_CHANGED,
+                                     f"Store locator not found at {profile.locator_path} (HTTP 404)")
+        if status and status >= 400:
+            return ValidationOutcome(Status.NOT_VALIDATED, Reason.SITE_UNREACHABLE,
+                                     f"HTTP {status} on store locator")
+        try:
+            locator.search_input.wait_for(timeout=timeout)
+        except PlaywrightTimeoutError:
+            return ValidationOutcome(
+                Status.NOT_VALIDATED, Reason.LOCATOR_PAGE_CHANGED,
+                f"Search box not found ({profile.search_input}); site profile '{profile.name}' needs updating",
+                screenshot=self.scraper.screenshot(f"{rid}_locator"),
+            )
 
         query = " ".join(p for p in (record["store_address"], record.get("postal_code", "")) if p)
-        candidates = locator.search(query).result_list()
+        try:
+            locator.search(query, timeout=timeout)
+        except PlaywrightTimeoutError:
+            return ValidationOutcome(Status.NOT_VALIDATED, Reason.SITE_UNREACHABLE,
+                                     "Store search did not return results in time")
+        try:
+            candidates = locator.result_list(timeout=timeout)
+        except PlaywrightTimeoutError:
+            return ValidationOutcome(
+                Status.NOT_VALIDATED, Reason.LOCATOR_PAGE_CHANGED,
+                f"Search results not recognised ({profile.result_item}); site profile '{profile.name}' needs updating",
+                screenshot=self.scraper.screenshot(f"{rid}_locator", profile.results_container),
+            )
         match = best_match(record["store_address"], [c.address for c in candidates], record.get("postal_code", ""))
         if match is None:
             return ValidationOutcome(
@@ -101,7 +128,15 @@ class RecordValidator:
                 screenshot=self.scraper.screenshot(f"{rid}_locator", profile.results_container),
             )
 
-        detail = locator.open_result(match.index)
+        try:
+            detail = locator.open_result(match.index, timeout=timeout)
+        except PlaywrightTimeoutError:
+            return ValidationOutcome(
+                Status.NOT_VALIDATED, Reason.LOCATOR_PAGE_CHANGED,
+                f"Store page layout not recognised ({profile.store_content}); "
+                f"site profile '{profile.name}' needs updating",
+                screenshot=self.scraper.screenshot(f"{rid}_store"),
+            )
         self.scraper.wait_for_page_ready(rid, "store_page", expect_payment_context=False)
 
         detail_address = detail.address_text()

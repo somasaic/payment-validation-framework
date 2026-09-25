@@ -154,8 +154,9 @@ class PaymentMethodScraper:
             return False
 
     def is_bot_wall(self, status: int | None) -> bool:
-        if status in (403, 429, 503):
+        if status in (403, 429):
             return True
+        # 503 is ambiguous (maintenance vs JS challenge): decide on page content
         text = self._get_page_text()
         # Interstitials are short; long pages merely mentioning "captcha" are not walls
         return len(text) < 2000 and any(marker in text for marker in BOT_WALL_MARKERS)

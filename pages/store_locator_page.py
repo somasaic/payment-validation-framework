@@ -53,13 +53,13 @@ class StoreLocatorPage:
         )
         return self
 
-    def result_list(self) -> list[StoreSearchResult]:
+    def result_list(self, timeout: float = 15000) -> list[StoreSearchResult]:
         items = []
         for i in range(self.results.count()):
             item = self.results.nth(i)
             items.append(StoreSearchResult(
-                name=item.locator(self.profile.result_name).inner_text().strip(),
-                address=item.locator(self.profile.result_address).inner_text().strip(),
+                name=item.locator(self.profile.result_name).inner_text(timeout=timeout).strip(),
+                address=item.locator(self.profile.result_address).inner_text(timeout=timeout).strip(),
                 index=i,
             ))
         return items
@@ -67,10 +67,10 @@ class StoreLocatorPage:
     def result(self, index: int) -> Locator:
         return self.results.nth(index)
 
-    def open_result(self, index: int) -> "StoreDetailPage":
-        self.results.nth(index).locator(self.profile.result_link).click()
+    def open_result(self, index: int, timeout: float = 15000) -> "StoreDetailPage":
+        self.results.nth(index).locator(self.profile.result_link).click(timeout=timeout)
         detail = StoreDetailPage(self.page, self.profile)
-        detail.content.wait_for()
+        detail.content.wait_for(timeout=timeout)
         return detail
 
 

@@ -5,9 +5,13 @@ TC_310  Every master-dataset record → expected status, reason and Yes/No value
         (store locations via locator, site-level merchants, every reason code)
 TC_311  Location scan is scoped: site-wide footer logos don't leak into a store
 TC_312  CLI run is resumable: a second run completes only the pending rows
+TC_313  Stale site profile (selectors no longer match) → LOCATOR_PAGE_CHANGED, not retried
+TC_314  Store locator moved (HTTP 404) → LOCATOR_PAGE_CHANGED
+TC_315  503 maintenance page → SITE_UNREACHABLE, not mistaken for bot protection
 """
 
 import csv
+import dataclasses
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +20,8 @@ import pytest
 
 from mock_merchant import catalog, chain
 from mock_merchant.server import rewrite_url
+from pages.site_profile import profile_for_url
+from scrapers import record_validator
 from scrapers.record_validator import RecordValidator
 from utils.csv_reader import load_detection_rules
 from utils.master_dataset import load_master
@@ -40,6 +46,11 @@ EXPECTED = {
     "R0014": ("NOT_VALIDATED", "SITE_UNREACHABLE"),
     "R0018": ("NEEDS_REVIEW",  "LOCATOR_NOT_SUPPORTED"),
 }
+
+
+def _read_csv(path: Path) -> list[dict]:
+    with path.open(newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
 
 
 def _expected_yes(record_id: str) -> set[str] | None:
@@ -93,11 +104,67 @@ def test_cli_resume(tmp_path):
            "--workers", "1", "--domain-interval", "0"]
 
     subprocess.run(cmd + ["--limit", "1", "--output", str(out)], check=True, capture_output=True, cwd=ROOT)
-    first = list(csv.DictReader(out.open(encoding="utf-8")))
+    first = _read_csv(out)
     assert [r["record_id"] for r in first] == ["R0011"]
 
     subprocess.run(cmd + ["--resume", str(out)], check=True, capture_output=True, cwd=ROOT)
-    final = list(csv.DictReader(out.open(encoding="utf-8")))
+    final = _read_csv(out)
     assert [r["record_id"] for r in final] == ["R0011", "R0012"]
     assert final[0]["validated_at"] == first[0]["validated_at"]
     assert final[1]["visa_accepted"] == "Yes" and final[1]["amex_accepted"] == "No"
+
+
+FAST_RULES = {**RULES, "page_readiness": {**RULES["page_readiness"], "settle_timeout_ms": 2000,
+                                          "payment_context_timeout_ms": 500}}
+
+
+def _validate_with(browser, base_url, record_id, rules=RULES, route=None):
+    record = RECORDS[record_id]
+    context = browser.new_context()
+    try:
+        page = context.new_page()
+        if route:
+            page.route(*route)
+        return RecordValidator(page, rules).validate(record, rewrite_url(record["website_url"], base_url))
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("field, stale_value", [
+    ("search_input",   "role=searchbox[name=\"Search restaurants\"]"),
+    ("result_address", "[data-testid='store-address-line']"),
+    ("store_content",  "[data-testid='restaurant-detail']"),
+])
+def test_stale_site_profile(browser, base_url, monkeypatch, field, stale_value):
+    """TC_313"""
+    stale = dataclasses.replace(profile_for_url(RECORDS["R0001"]["website_url"]), **{field: stale_value})
+    monkeypatch.setattr(record_validator, "profile_for_url", lambda url: stale)
+
+    outcome = _validate_with(browser, base_url, "R0001", FAST_RULES)
+
+    assert (outcome.status, outcome.reason) == ("NOT_VALIDATED", "LOCATOR_PAGE_CHANGED")
+    assert "needs updating" in outcome.reason_detail
+    assert not outcome.retryable
+
+
+def test_locator_moved(browser, base_url, monkeypatch):
+    """TC_314"""
+    moved = dataclasses.replace(profile_for_url(RECORDS["R0001"]["website_url"]), locator_path="/restaurant-finder")
+    monkeypatch.setattr(record_validator, "profile_for_url", lambda url: moved)
+
+    outcome = _validate_with(browser, base_url, "R0001")
+
+    assert (outcome.status, outcome.reason) == ("NOT_VALIDATED", "LOCATOR_PAGE_CHANGED")
+    assert "HTTP 404" in outcome.reason_detail
+
+
+def test_maintenance_page_is_not_bot_wall(browser, base_url):
+    """TC_315"""
+    maintenance = ("**/*", lambda route: route.fulfill(
+        status=503, content_type="text/html",
+        body="<h1>Down for maintenance</h1><p>We'll be back shortly.</p>"))
+
+    outcome = _validate_with(browser, base_url, "R0015", route=maintenance)
+
+    assert (outcome.status, outcome.reason) == ("NOT_VALIDATED", "SITE_UNREACHABLE")
+    assert "503" in outcome.reason_detail
