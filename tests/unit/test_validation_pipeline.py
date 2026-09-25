@@ -1,6 +1,6 @@
 """
-Unit + Integration Tests
-========================
+Unit Tests
+==========
 TC_001  Confidence scorer — all signals → AUTO_ACCEPT
 TC_002  Confidence scorer — no signals → AUTO_REJECT
 TC_003  Confidence scorer — partial signals → REVIEW
@@ -12,12 +12,8 @@ TC_008  Report writer — review queue contains only REVIEW rows
 """
 
 import os
-import sys
 import csv
-import json
 import pytest
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from validators.confidence_scorer import ConfidenceScorer
 from utils.csv_reader import load_merchants, load_detection_rules
