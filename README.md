@@ -83,7 +83,7 @@ Every record that can't be fully validated says why:
 | `BLOCKED_BY_BOT_PROTECTION` | 403/429 or a captcha / "verify you are human" interstitial |
 | `LOCATOR_NOT_SUPPORTED` | Record has an address but the brand has no site profile, so it gets a site-level result, flagged for review |
 | `STORE_NOT_FOUND` | Locator returned no candidate matching the address + postcode |
-| `STORE_TEMPORARILY_CLOSED` | Store page shows a closed notice, so it isn't validated |
+| `STORE_TEMPORARILY_CLOSED` | Unable to verify: the store page shows a temporarily closed notice. Method columns are left blank |
 | `NO_PAYMENT_INFO_DISPLAYED` | Page loaded fine but shows no payment acceptance, so every method is `No` |
 | `LOW_CONFIDENCE` | At least one method scored in the Review band |
 

@@ -117,7 +117,7 @@ class RecordValidator:
 
         if detail.is_temporarily_closed():
             return ValidationOutcome(Status.NOT_VALIDATED, Reason.STORE_TEMPORARILY_CLOSED,
-                                     "Store page shows a temporarily closed notice", **common)
+                                     "Unable to verify: store is temporarily closed", **common)
 
         evidence = self.scraper.empty_evidence_set()
         self.scraper.scan_current_page(evidence, "store_page", scope=profile.store_content)
