@@ -35,8 +35,8 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -45,12 +45,12 @@ jobs:
         run: >
           pytest -m unit $REPORT_ARGS
           --html=reports/html/unit-report.html --junitxml=reports/junit/unit.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: allure-results-unit
           path: allure-results/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: reports-unit
@@ -61,12 +61,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
       - run: |
@@ -94,12 +94,12 @@ jobs:
             --reporter-htmlextra-browserTitle "Postman Report" \
             --reporter-allure-resultsDir allure-results
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: allure-results-api
           path: allure-results/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: reports-api
@@ -110,8 +110,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -123,18 +123,18 @@ jobs:
           pytest -m ui --browser chromium $REPORT_ARGS
           --tracing retain-on-failure --screenshot only-on-failure --output test-results
           --html=reports/html/ui-report.html --junitxml=reports/junit/ui.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: allure-results-ui
           path: allure-results/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: reports-ui
           path: reports/
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
@@ -146,8 +146,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -158,12 +158,12 @@ jobs:
         run: >
           pytest -m integration $REPORT_ARGS
           --html=reports/html/integration-report.html --junitxml=reports/junit/integration.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: allure-results-integration
           path: allure-results/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: reports-integration
@@ -186,31 +186,31 @@ jobs:
       ALLURE_REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
       PUBLISH: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
       - name: Download Allure results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: allure-results-*
           path: allure-results
           merge-multiple: true
 
       - name: Download HTML reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: reports-*
           path: downloaded-reports
           merge-multiple: true
 
       - name: Restore Allure history (trend charts)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         continue-on-error: true
         with:
           ref: gh-pages
@@ -238,6 +238,10 @@ jobs:
       - name: Job summary
         if: always()
         run: |
+          if [ ! -f site/widgets/summary.json ]; then
+            printf '## Test Report\n\nReport generation failed — see the job log.\n' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
           import json, os
           s = json.load(open("site/widgets/summary.json"))["statistic"]
@@ -253,7 +257,7 @@ jobs:
               print("Reports attached as the `test-report` artifact.")
           EOF
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-report
@@ -280,8 +284,8 @@ jobs:
         region: [US, GB, DE, JP, AU, SG]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -290,7 +294,7 @@ jobs:
           playwright install chromium --with-deps
       - name: Run validation — ${{ matrix.region }}
         run: python run_validation.py --region ${{ matrix.region }} --mock
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: validation-${{ matrix.region }}
@@ -305,8 +309,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ui-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -314,12 +318,15 @@ jobs:
           pip install -r requirements.txt
           playwright install chromium --with-deps
       - name: Validate master dataset
+        env:
+          REGION: ${{ github.event.inputs.region }}
+          TARGET: ${{ github.event.inputs.target || 'mock' }}
         run: |
-          ARGS="--workers 4 --output reports/master_validated.csv"
-          if [ -n "${{ github.event.inputs.region }}" ]; then ARGS="$ARGS --region ${{ github.event.inputs.region }}"; fi
-          if [ "${{ github.event.inputs.target || 'mock' }}" = "mock" ]; then ARGS="$ARGS --mock"; fi
-          python run_master_validation.py $ARGS
-      - uses: actions/upload-artifact@v4
+          ARGS=(--workers 4 --output reports/master_validated.csv)
+          if [ -n "$REGION" ]; then ARGS+=(--region "$REGION"); fi
+          if [ "$TARGET" = "mock" ]; then ARGS+=(--mock); fi
+          python run_master_validation.py "${ARGS[@]}"
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: master-dataset-validated
@@ -334,8 +341,8 @@ jobs:
     needs: unit-tests
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -343,13 +350,15 @@ jobs:
           pip install -r requirements.txt
           playwright install chromium --with-deps
       - name: Run full pipeline — all merchants
+        env:
+          TARGET: ${{ github.event.inputs.target || 'mock' }}
         run: |
-          if [ "${{ github.event.inputs.target || 'mock' }}" = "mock" ]; then
+          if [ "$TARGET" = "mock" ]; then
             python run_validation.py --mock
           else
             python run_validation.py
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: full-validation-report
