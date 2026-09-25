@@ -109,6 +109,17 @@ def worker(jobs: queue.Queue, rules: dict, methods: list[str], writer: Checkpoin
                 browser.close()
 
 
+def _drain(jobs: queue.Queue) -> int:
+    """Remove pending records so workers stop after their current one."""
+    dropped = 0
+    while True:
+        try:
+            jobs.get_nowait()
+            dropped += 1
+        except queue.Empty:
+            return dropped
+
+
 def main():
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(encoding="utf-8", errors="replace")
@@ -158,8 +169,17 @@ def main():
         ]
         for t in threads:
             t.start()
-        for t in threads:
-            t.join()
+        try:
+            # join with a timeout so Ctrl+C is delivered on every platform
+            while any(t.is_alive() for t in threads):
+                for t in threads:
+                    t.join(timeout=0.5)
+        except KeyboardInterrupt:
+            dropped = _drain(jobs)
+            logger.warning(f"Interrupted: finishing records in progress, {dropped} not started. "
+                           f"Continue later with --resume {output}")
+            for t in threads:
+                t.join()
 
     final_rows = writer.finalize([r["record_id"] for r in rows])
     summary = summarize(final_rows, methods)
