@@ -45,6 +45,12 @@ jobs:
         run: >
           pytest -m unit $REPORT_ARGS
           --html=reports/html/unit-report.html --junitxml=reports/junit/unit.xml
+      - name: Detection calibration + quality gate
+        run: python scripts/calibrate_detection.py --out reports/calibration_report.md
+      - name: Calibration report → run summary
+        if: always()
+        run: |
+          if [ -f reports/calibration_report.md ]; then cat reports/calibration_report.md >> "$GITHUB_STEP_SUMMARY"; fi
       - uses: actions/upload-artifact@v7
         if: always()
         with:
