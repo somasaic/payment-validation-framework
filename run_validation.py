@@ -13,6 +13,9 @@ Usage:
   python run_validation.py --merchant M001    # Single merchant
   python run_validation.py --mock             # Scan local mock storefronts (CI)
 
+Live runs only scan merchants whose domain is in data/live_allowlist.txt
+(--allowlist to use another file); robots.txt is honoured for every request.
+
 OUTPUT:
   reports/validation_results_<ts>.csv   ← full dataset (client deliverable)
   reports/review_queue_<ts>.csv          ← manual QA queue
@@ -31,6 +34,7 @@ from playwright.sync_api import sync_playwright
 from utils.csv_reader import load_merchants, load_detection_rules
 from scrapers.payment_scraper import PaymentMethodScraper
 from validators.confidence_scorer import ConfidenceScorer
+from utils.site_policy import DEFAULT_ALLOWLIST, SitePolicy, load_allowlist
 from utils.report_writer import write_full_report, write_review_queue, print_console_summary
 
 # ── Logging ──────────────────────────────────────────────────────────────────
@@ -47,7 +51,7 @@ os.makedirs("reports/screenshots", exist_ok=True)
 
 # ── Pipeline ─────────────────────────────────────────────────────────────────
 
-def run_pipeline(merchants: list[dict], detection_rules: dict) -> list[dict]:
+def run_pipeline(merchants: list[dict], detection_rules: dict, policy: SitePolicy | None = None) -> list[dict]:
     scorer = ConfidenceScorer(detection_rules)
     all_results = []
 
@@ -58,23 +62,28 @@ def run_pipeline(merchants: list[dict], detection_rules: dict) -> list[dict]:
         )
 
         for merchant in merchants:
+            if policy and not policy.is_allowlisted(merchant["base_url"]):
+                logger.warning(f"[{merchant['merchant_id']}] NOT_ALLOWLISTED — skipped, nothing requested")
+                all_results.append({**merchant, "scored_methods": {}, "error": "NOT_ALLOWLISTED",
+                                    "run_timestamp": datetime.now().isoformat()})
+                continue
+
+            # Default Playwright user agent: the browser is not disguised as a regular user
             context = browser.new_context(
                 viewport={"width": 1280, "height": 800},
                 locale="en-US",
-                extra_http_headers={
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "User-Agent": (
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/120.0.0.0 Safari/537.36"
-                    ),
-                }
+                extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
             )
             page = context.new_page()
 
             try:
-                scraper  = PaymentMethodScraper(page, detection_rules)
+                scraper  = PaymentMethodScraper(page, detection_rules, policy)
                 evidence = scraper.scan_merchant(merchant)
+                if scraper.visits and scraper.visits[0]["robots"]:
+                    logger.warning(f"[{merchant['merchant_id']}] DISALLOWED_BY_ROBOTS — {scraper.visits[0]['robots']}")
+                    all_results.append({**merchant, "scored_methods": {}, "error": "DISALLOWED_BY_ROBOTS",
+                                        "run_timestamp": datetime.now().isoformat()})
+                    continue
                 scored   = scorer.score_merchant(evidence)
 
                 all_results.append({
@@ -119,6 +128,8 @@ def main():
     parser.add_argument("--merchant", help="Run single merchant by ID (e.g. M001)")
     parser.add_argument("--mock", action="store_true",
                         help="Scan local mock storefronts instead of live merchant URLs")
+    parser.add_argument("--allowlist", default=str(DEFAULT_ALLOWLIST),
+                        help="Live runs: file of domains approved for scanning (ignored with --mock)")
     args = parser.parse_args()
 
     all_merchants    = load_merchants()
@@ -142,10 +153,14 @@ def main():
             from mock_merchant.server import MockMerchantServer
             server = stack.enter_context(MockMerchantServer())
             merchants = [{**m, "base_url": f"{server.url}/store/{m['merchant_id']}"} for m in merchants]
+            policy = SitePolicy(allowlist=None)
             logger.info(f"Mock mode: storefronts served from {server.url}")
+        else:
+            policy = SitePolicy(allowlist=load_allowlist(args.allowlist))
+            logger.info(f"Live mode: allowlist {args.allowlist} ({len(policy.allowlist)} pattern(s))")
 
         logger.info(f"Starting pipeline: {len(merchants)} merchant(s) to scan")
-        results = run_pipeline(merchants, detection_rules)
+        results = run_pipeline(merchants, detection_rules, policy)
 
     # Write outputs
     full_path   = write_full_report(results)

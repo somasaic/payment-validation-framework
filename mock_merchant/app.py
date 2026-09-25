@@ -32,7 +32,7 @@ from typing import Literal
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -124,6 +124,7 @@ def create_app(
     payment_latency_ms: int | None = None,
     api_key: str | None = None,
     search_latency_ms: int | None = None,
+    robots_txt: str | None = None,
 ) -> FastAPI:
     if payment_latency_ms is None:
         payment_latency_ms = int(os.getenv("MOCK_PAYMENT_LATENCY_MS", "800"))
@@ -203,6 +204,11 @@ def create_app(
         return _page(merchant_id, "checkout")
 
     # ── API ───────────────────────────────────────────────────────────────
+
+    if robots_txt is not None:                     # default: no robots.txt (404 → everything allowed)
+        @app.get("/robots.txt", include_in_schema=False)
+        def robots():
+            return PlainTextResponse(robots_txt)
 
     @app.get("/health")
     def health():

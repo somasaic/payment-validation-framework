@@ -14,7 +14,7 @@ on:
         required: false
         default: ''
       target:
-        description: 'mock = local mock sites, live = real website URLs from the dataset'
+        description: 'mock = local mock sites; live = real URLs, only domains in data/live_allowlist.txt (robots.txt honoured)'
         required: false
         default: 'mock'
         type: choice

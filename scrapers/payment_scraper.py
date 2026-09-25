@@ -30,6 +30,8 @@ from urllib.parse import urljoin, urlparse
 
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 
+from utils.site_policy import SitePolicy
+
 logger = logging.getLogger(__name__)
 
 ARTIFACTS_DIR = "reports/screenshots"
@@ -52,8 +54,9 @@ PAYMENT_PAGE_LABELS = {"landing", "checkout", "payment"}
 
 class PaymentMethodScraper:
 
-    def __init__(self, page: Page, detection_rules: dict):
+    def __init__(self, page: Page, detection_rules: dict, policy: SitePolicy | None = None):
         self.page = page
+        self.policy = policy          # robots.txt checks before every request (None = no checks)
         self.rules = detection_rules["payment_methods"]
         self.checkout_paths = detection_rules["checkout_path_patterns"]
         self.readiness = {**DEFAULT_READINESS, **detection_rules.get("page_readiness", {})}
@@ -133,8 +136,13 @@ class PaymentMethodScraper:
     # ──────────────────────────────────────────────────────────────────────
 
     def _visit_and_scan(self, url: str, evidence: dict, merchant_id: str, label: str) -> bool:
-        visit = {"label": label, "url": url, "status": None, "error": None, "bot_wall": False}
+        visit = {"label": label, "url": url, "status": None, "error": None, "bot_wall": False, "robots": None}
         self.visits.append(visit)
+        blocked = self.policy.robots_block_reason(url) if self.policy else None
+        if blocked:
+            visit["robots"] = blocked
+            logger.info(f"[{merchant_id}] {label}: skipped — {blocked}")
+            return False
         try:
             response = self.page.goto(url, wait_until="domcontentloaded", timeout=30000)
             visit["status"] = response.status if response else None
@@ -318,6 +326,8 @@ class PaymentMethodScraper:
         """
         for path in self.checkout_paths:
             candidate = base_url.rstrip("/") + path
+            if self.policy and self.policy.robots_block_reason(candidate):
+                continue
             try:
                 resp = self.page.request.get(candidate, timeout=8000)
                 if resp.status < 400:

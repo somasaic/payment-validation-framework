@@ -1,0 +1,15 @@
+# Live-run allowlist
+# ==================
+# Domains the framework may scan in LIVE mode (runs without --mock).
+# Anything not listed is reported as NOT_ALLOWLISTED and never requested.
+#
+# Only add a domain when you have permission to scan it, e.g.
+#   - the merchant is on the client's contracted validation list, or
+#   - the site owner has agreed.
+# robots.txt is still enforced for every listed domain.
+#
+# One domain per line; "*.example.com" matches any subdomain of example.com.
+#
+# Examples (keep commented unless you have permission):
+# www.merchant.example
+# *.brand.example

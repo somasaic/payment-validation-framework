@@ -14,10 +14,15 @@ Store-location record (has store_address and the brand has a site profile):
 
 Site-level record (no address, or no locator profile for the brand):
   multi-page scan via PaymentMethodScraper.scan_merchant().
+
+With a SitePolicy, records outside the live allowlist are never requested
+(NOT_ALLOWLISTED) and robots.txt is checked before every page
+(DISALLOWED_BY_ROBOTS).
 """
 
 import logging
 from dataclasses import dataclass, field
+from urllib.parse import urljoin, urlparse
 
 from playwright.sync_api import Error as PlaywrightError, Page, TimeoutError as PlaywrightTimeoutError
 
@@ -26,6 +31,7 @@ from pages.store_locator_page import StoreLocatorPage
 from scrapers.payment_scraper import PaymentMethodScraper
 from utils.address_matcher import best_match, score as address_score
 from utils.master_dataset import Reason, Status
+from utils.site_policy import SitePolicy
 from validators.confidence_scorer import ConfidenceScorer
 
 logger = logging.getLogger(__name__)
@@ -52,17 +58,22 @@ class ValidationOutcome:
 
 class RecordValidator:
 
-    def __init__(self, page: Page, detection_rules: dict):
+    def __init__(self, page: Page, detection_rules: dict, policy: SitePolicy | None = None):
         self.page    = page
         self.rules   = detection_rules
+        self.policy  = policy
         self.scorer  = ConfidenceScorer(detection_rules)
-        self.scraper = PaymentMethodScraper(page, detection_rules)
+        self.scraper = PaymentMethodScraper(page, detection_rules, policy)
 
     def validate(self, record: dict, site_url: str | None = None) -> ValidationOutcome:
         """site_url overrides record['website_url'] as the navigation target
         (mock mode); the profile is always resolved from the real website_url."""
         site_url = site_url or record["website_url"]
         profile  = profile_for_url(record["website_url"])
+        if self.policy and not self.policy.is_allowlisted(record["website_url"]):
+            host = urlparse(record["website_url"]).hostname
+            return ValidationOutcome(Status.NOT_VALIDATED, Reason.NOT_ALLOWLISTED,
+                                     f"{host} is not in the live allowlist; not requested")
         try:
             if record.get("store_address") and profile:
                 return self._validate_location(record, site_url, profile)
@@ -83,7 +94,10 @@ class RecordValidator:
         locator = StoreLocatorPage(self.page, profile, site_url)
 
         timeout = self.scraper.readiness["settle_timeout_ms"]
-        response = self.page.goto(site_url.rstrip("/") + profile.locator_path, wait_until="domcontentloaded")
+        locator_url = site_url.rstrip("/") + profile.locator_path
+        if blocked := self._robots_outcome(locator_url):
+            return blocked
+        response = self.page.goto(locator_url, wait_until="domcontentloaded")
         status = response.status if response else None
         if self.scraper.is_bot_wall(status):
             return ValidationOutcome(
@@ -129,6 +143,9 @@ class RecordValidator:
             )
 
         try:
+            href = locator.result(match.index).locator(profile.result_link).get_attribute("href", timeout=timeout)
+            if href and (blocked := self._robots_outcome(urljoin(self.page.url, href))):
+                return blocked
             detail = locator.open_result(match.index, timeout=timeout)
         except PlaywrightTimeoutError:
             return ValidationOutcome(
@@ -168,18 +185,28 @@ class RecordValidator:
             "base_url":      site_url,
         })
         landing = self.scraper.visits[0] if self.scraper.visits else {}
+        if landing.get("robots"):
+            return ValidationOutcome(Status.NOT_VALIDATED, Reason.DISALLOWED_BY_ROBOTS, landing["robots"])
         if landing.get("bot_wall"):
             return ValidationOutcome(Status.NOT_VALIDATED, Reason.BLOCKED_BY_BOT_PROTECTION,
                                      f"HTTP {landing.get('status')} on landing page")
         if landing.get("error") or (landing.get("status") or 0) >= 400:
             return ValidationOutcome(Status.NOT_VALIDATED, Reason.SITE_UNREACHABLE,
                                      landing.get("error") or f"HTTP {landing.get('status')}")
-        pages = ", ".join(v["label"] for v in self.scraper.visits if not v["error"])
+        scanned = ", ".join(v["label"] for v in self.scraper.visits if not v["error"] and not v["robots"])
+        skipped = ", ".join(v["label"] for v in self.scraper.visits if v["robots"])
         outcome = self._scored_outcome(evidence, screenshot=f"reports/screenshots/{record['record_id']}_landing.png")
-        outcome.reason_detail = outcome.reason_detail or f"Pages scanned: {pages}"
+        detail = f"Pages scanned: {scanned}" + (f"; skipped by robots.txt: {skipped}" if skipped else "")
+        outcome.reason_detail = outcome.reason_detail or detail
         return outcome
 
     # ── Helpers ──────────────────────────────────────────────────────────
+
+    def _robots_outcome(self, url: str) -> ValidationOutcome | None:
+        reason = self.policy.robots_block_reason(url) if self.policy else None
+        if reason:
+            return ValidationOutcome(Status.NOT_VALIDATED, Reason.DISALLOWED_BY_ROBOTS, reason)
+        return None
 
     def _scored_outcome(self, evidence: dict, **kwargs) -> ValidationOutcome:
         scored = self.scorer.score_merchant(evidence)
