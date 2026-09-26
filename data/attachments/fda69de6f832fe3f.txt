@@ -1,0 +1,10 @@
+07:24:45 [INFO] scrapers.payment_scraper - [M005] Scanning OzBuy AU [AU]
+07:24:46 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M005_landing.png
+07:24:46 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:40113/store/M005/checkout
+07:24:46 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M005_checkout.png
+07:24:46 [INFO] scrapers.payment_scraper - [M005] Scan complete. Methods with any signal: ['visa', 'mastercard', 'paypal', 'apple_pay', 'afterpay']
+07:24:46 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+07:24:46 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+07:24:46 [INFO] validators.confidence_scorer -   paypal: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+07:24:46 [INFO] validators.confidence_scorer -   apple_pay: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+07:24:46 [INFO] validators.confidence_scorer -   afterpay: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']

@@ -1,0 +1,2 @@
+07:23:24 [INFO] validators.confidence_scorer -   m: score=0.05 [AUTO_REJECT] signals=['css_class']
+07:23:24 [INFO] validators.confidence_scorer -   not_in_rules: score=0.45 [AUTO_REJECT] signals=['img', 'text']
