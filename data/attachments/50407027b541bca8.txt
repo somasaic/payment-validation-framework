@@ -1,4 +1,0 @@
-07:24:32 [INFO] scrapers.payment_scraper - [R0015] Scanning DemoStore US [US]
-07:24:37 [INFO] scrapers.payment_scraper - [R0015] landing: timed out waiting for payment context visible
-07:24:37 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/R0015_landing.png
-07:24:37 [INFO] scrapers.payment_scraper - [R0015] Scan complete. Methods with any signal: []

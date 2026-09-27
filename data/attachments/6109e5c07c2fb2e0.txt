@@ -1,6 +1,0 @@
-07:23:24 [INFO] validators.confidence_scorer -   visa: score=0.40 [AUTO_REJECT] signals=['network']
-07:23:24 [INFO] validators.confidence_scorer -   visa: score=0.30 [AUTO_REJECT] signals=['img']
-07:23:24 [INFO] validators.confidence_scorer -   visa: score=0.10 [AUTO_REJECT] signals=['alt']
-07:23:24 [INFO] validators.confidence_scorer -   visa: score=0.20 [AUTO_REJECT] signals=['text']
-07:23:24 [INFO] validators.confidence_scorer -   visa: score=0.05 [AUTO_REJECT] signals=['css_class']
-07:23:24 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']

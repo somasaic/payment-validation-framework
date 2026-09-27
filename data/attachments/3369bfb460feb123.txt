@@ -1,8 +1,0 @@
-07:24:44 [INFO] scrapers.payment_scraper - [M003] Scanning ElectroShop DE [DE]
-07:24:44 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M003_landing.png
-07:24:44 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:40113/store/M003/checkout
-07:24:45 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M003_checkout.png
-07:24:45 [INFO] scrapers.payment_scraper - [M003] Scan complete. Methods with any signal: ['visa', 'mastercard', 'paypal']
-07:24:45 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-07:24:45 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-07:24:45 [INFO] validators.confidence_scorer -   paypal: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
