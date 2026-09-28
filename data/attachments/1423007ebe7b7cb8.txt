@@ -1,6 +1,0 @@
-07:55:11 [INFO] validators.confidence_scorer -   upi: score=0.35 [AUTO_REJECT] signals=['network']
-07:55:11 [INFO] validators.confidence_scorer -   upi: score=0.35 [AUTO_REJECT] signals=['img']
-07:55:11 [INFO] validators.confidence_scorer -   upi: score=0.10 [AUTO_REJECT] signals=['alt']
-07:55:11 [INFO] validators.confidence_scorer -   upi: score=0.20 [AUTO_REJECT] signals=['text']
-07:55:11 [INFO] validators.confidence_scorer -   upi: score=0.05 [AUTO_REJECT] signals=['css_class']
-07:55:11 [INFO] validators.confidence_scorer -   upi: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
