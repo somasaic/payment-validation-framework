@@ -1,9 +1,0 @@
-08:32:04 [INFO] scrapers.payment_scraper - [M012] Scanning LuxuryGoods SG [SG]
-08:32:05 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M012_landing.png
-08:32:05 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:38169/store/M012/checkout
-08:32:05 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M012_checkout.png
-08:32:05 [INFO] scrapers.payment_scraper - [M012] Scan complete. Methods with any signal: ['amex', 'visa', 'mastercard', 'apple_pay']
-08:32:05 [INFO] validators.confidence_scorer -   amex: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-08:32:05 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-08:32:05 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-08:32:05 [INFO] validators.confidence_scorer -   apple_pay: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
