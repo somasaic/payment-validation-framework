@@ -1,5 +1,0 @@
-08:16:43 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-08:16:43 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-08:16:43 [INFO] validators.confidence_scorer -   rupay: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
-08:16:43 [INFO] validators.confidence_scorer -   upi: score=0.85 [AUTO_ACCEPT] signals=['network', 'img', 'alt', 'css_class']
-08:16:43 [INFO] validators.confidence_scorer -   paytm: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
