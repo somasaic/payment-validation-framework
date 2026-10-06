@@ -1,0 +1,8 @@
+08:49:49 [INFO] scrapers.payment_scraper - [M011] Scanning ServicePro UK [GB]
+08:49:50 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M011_landing.png
+08:49:50 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:40971/store/M011/checkout
+08:49:50 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M011_checkout.png
+08:49:50 [INFO] scrapers.payment_scraper - [M011] Scan complete. Methods with any signal: ['visa', 'mastercard', 'paypal']
+08:49:50 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:49:50 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:49:50 [INFO] validators.confidence_scorer -   paypal: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']

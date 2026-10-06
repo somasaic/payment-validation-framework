@@ -1,0 +1,1 @@
+08:48:20 [INFO] validators.confidence_scorer -   upi: score=0.35 [AUTO_REJECT] signals=['network']

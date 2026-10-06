@@ -1,0 +1,2 @@
+08:48:20 [INFO] validators.confidence_scorer -   amex: score=0.55 [REVIEW] signals=['network', 'alt', 'css_class']
+08:48:20 [INFO] validators.confidence_scorer -   amex: score=0.90 [AUTO_ACCEPT] signals=['network', 'img', 'text']
