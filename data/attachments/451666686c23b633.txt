@@ -1,0 +1,9 @@
+08:27:06 [INFO] scrapers.payment_scraper - [R0018] Scanning BrandHub US Flagship [US]
+08:27:06 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/R0018_landing.png
+08:27:06 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:45439/store/M010/checkout
+08:27:07 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/R0018_checkout.png
+08:27:07 [INFO] scrapers.payment_scraper - [R0018] Scan complete. Methods with any signal: ['amex', 'visa', 'mastercard', 'apple_pay']
+08:27:07 [INFO] validators.confidence_scorer -   amex: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:27:07 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:27:07 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:27:07 [INFO] validators.confidence_scorer -   apple_pay: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']

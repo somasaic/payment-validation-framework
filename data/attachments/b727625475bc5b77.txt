@@ -1,0 +1,1 @@
+08:26:08 [INFO] validators.confidence_scorer -   mastercard: score=0.20 [AUTO_REJECT] signals=['text']
