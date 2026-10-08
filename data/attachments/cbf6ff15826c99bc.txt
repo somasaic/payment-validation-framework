@@ -1,0 +1,2 @@
+08:41:56 [INFO] validators.confidence_scorer -   m: score=0.85 [REVIEW] signals=['network']
+08:41:56 [INFO] validators.confidence_scorer -   m: score=0.85 [AUTO_ACCEPT] signals=['network']

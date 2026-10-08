@@ -1,1 +1,1 @@
-[{"values":["3.11.16"],"name":"Python"},{"values":["1.55.0"],"name":"Playwright"},{"values":["Linux 6.17.0-1022-azure"],"name":"OS"},{"values":["local mock merchant service"],"name":"Target"},{"values":["main"],"name":"Branch"},{"values":["569dec1"],"name":"Commit"}]
+[{"values":["3.11.17"],"name":"Python"},{"values":["1.55.0"],"name":"Playwright"},{"values":["Linux 6.17.0-1022-azure"],"name":"OS"},{"values":["local mock merchant service"],"name":"Target"},{"values":["main"],"name":"Branch"},{"values":["569dec1"],"name":"Commit"}]
