@@ -1,0 +1,9 @@
+08:48:30 [INFO] scrapers.payment_scraper - [M004] Scanning NipponMart JP [JP]
+08:48:30 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M004_landing.png
+08:48:30 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:33501/store/M004/checkout
+08:48:30 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M004_checkout.png
+08:48:30 [INFO] scrapers.payment_scraper - [M004] Scan complete. Methods with any signal: ['amex', 'visa', 'mastercard', 'jcb']
+08:48:30 [INFO] validators.confidence_scorer -   amex: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:48:30 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:48:30 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:48:30 [INFO] validators.confidence_scorer -   jcb: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
