@@ -1,0 +1,8 @@
+08:19:50 [INFO] scrapers.payment_scraper - [M007] Scanning SingaMall SG [SG]
+08:19:50 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M007_landing.png
+08:19:50 [INFO] scrapers.payment_scraper - Checkout found: http://127.0.0.1:33599/store/M007/checkout
+08:19:51 [INFO] scrapers.payment_scraper - Screenshot saved: reports/screenshots/M007_checkout.png
+08:19:51 [INFO] scrapers.payment_scraper - [M007] Scan complete. Methods with any signal: ['amex', 'visa', 'mastercard']
+08:19:51 [INFO] validators.confidence_scorer -   amex: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:19:51 [INFO] validators.confidence_scorer -   visa: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
+08:19:51 [INFO] validators.confidence_scorer -   mastercard: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']

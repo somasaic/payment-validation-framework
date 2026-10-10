@@ -1,0 +1,6 @@
+08:18:31 [INFO] validators.confidence_scorer -   shop_pay: score=0.35 [AUTO_REJECT] signals=['network']
+08:18:31 [INFO] validators.confidence_scorer -   shop_pay: score=0.35 [AUTO_REJECT] signals=['img']
+08:18:31 [INFO] validators.confidence_scorer -   shop_pay: score=0.10 [AUTO_REJECT] signals=['alt']
+08:18:31 [INFO] validators.confidence_scorer -   shop_pay: score=0.20 [AUTO_REJECT] signals=['text']
+08:18:31 [INFO] validators.confidence_scorer -   shop_pay: score=0.05 [AUTO_REJECT] signals=['css_class']
+08:18:31 [INFO] validators.confidence_scorer -   shop_pay: score=1.00 [AUTO_ACCEPT] signals=['network', 'img', 'text', 'alt', 'css_class']
