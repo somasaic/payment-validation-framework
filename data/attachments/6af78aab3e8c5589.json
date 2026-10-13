@@ -1,0 +1,12 @@
+{
+    "X-API-Key": "local-dev-key",
+    "Content-Type": "application/json",
+    "User-Agent": "PostmanRuntime/7.39.1",
+    "Accept": "*/*",
+    "Cache-Control": "no-cache",
+    "Postman-Token": "e981bf41-7818-4078-a417-3fa99c78f04b",
+    "Host": "127.0.0.1:8000",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Content-Length": "404"
+}
