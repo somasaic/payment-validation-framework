@@ -1,0 +1,1 @@
+07:07:34 [INFO] validators.confidence_scorer -   m: score=0.50 [REVIEW] signals=['network']
