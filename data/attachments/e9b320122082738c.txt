@@ -1,0 +1,1 @@
+09:10:50 [INFO] validators.confidence_scorer -   amex: score=0.40 [AUTO_REJECT] signals=['network']
