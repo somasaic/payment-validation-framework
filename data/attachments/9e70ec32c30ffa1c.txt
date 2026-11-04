@@ -1,1 +1,0 @@
-09:17:14 [INFO] validators.confidence_scorer -   amex: score=0.50 [REVIEW] signals=['img', 'text']
