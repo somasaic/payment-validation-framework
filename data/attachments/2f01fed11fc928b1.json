@@ -1,8 +1,0 @@
-{
-    "date": "Sat, 07 Nov 2026 08:36:10 GMT",
-    "server": "uvicorn",
-    "location": "/api/v1/validation-runs/d3ba5007-dc8e-4c1b-9917-aea922dcc63c",
-    "content-length": "435",
-    "content-type": "application/json",
-    "x-request-id": "f3f0f9b2-be2c-493c-9d98-98436bbb51b9"
-}
