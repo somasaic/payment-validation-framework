@@ -1,0 +1,1 @@
+09:30:42 [INFO] validators.confidence_scorer -   paypal: score=0.35 [AUTO_REJECT] signals=['network']
